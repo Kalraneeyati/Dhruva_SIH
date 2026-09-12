@@ -1,0 +1,74 @@
+/**
+ * Design tokens for the boat/shore/study surfaces.
+ *
+ * IMPLEMENTATION.md Phase 5 binding constraints:
+ *   - 7:1 contrast minimum (WCAG AAA) for verdict-carrying text.
+ *   - 56px minimum touch targets (--touch-target below).
+ *   - Colour never carries the verdict alone — every risk chip also carries a
+ *     glyph and a text label (see shared/theme/risk.ts).
+ *
+ * Dark is the default: the boat surface is read on deck at night as often as
+ * in daylight, and a dark ground reduces glare on a phone bolted to a helm.
+ */
+:root {
+  --color-bg: #081018;
+  --color-surface: #0f1f2e;
+  --color-surface-raised: #16283a;
+  --color-border: #2a4256;
+  --color-text: #f4f8fb;
+  --color-text-muted: #a9c0d1;
+  --color-accent: #f4a340;
+  --color-accent-text: #1a1204;
+
+  /* Risk colours are chosen for >=7:1 contrast against BOTH --color-bg and
+     the black glyph/white glyph paired with them (see risk.ts CHIP map). */
+  --color-safe: #37c26a;
+  --color-safe-text: #04170a;
+  --color-caution: #f4c542;
+  --color-caution-text: #251d02;
+  --color-nogo: #ff7a7a;
+  --color-nogo-text: #000000;
+  --color-unknown: #a9c0d1;
+  --color-unknown-text: #04121f;
+
+  --touch-target: 56px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", "Noto Sans Tamil", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+button {
+  min-height: var(--touch-target);
+  min-width: var(--touch-target);
+  cursor: pointer;
+}
+
+a { color: var(--color-accent); }
+
+/* Respect a user who has asked the OS for less motion — no gratuitous
+   transitions on a screen a crew member reads under stress. */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
