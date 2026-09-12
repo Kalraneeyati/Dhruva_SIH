@@ -61,6 +61,10 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+filterwarnings = [
+    # zarr v3 has no consolidated-metadata spec yet; we read our own cache, so it is safe.
+    "ignore:Consolidated metadata is currently not part in the Zarr format 3:UserWarning",
+]
 
 [tool.pyright]
 pythonVersion = "3.12"
