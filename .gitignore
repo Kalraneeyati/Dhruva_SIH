@@ -1,0 +1,17 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+node_modules/
+dist/
+.zarr_cache/
+data/layers/*.shp
+data/layers/*.dbf
+data/layers/*.shx
+data/layers/*.prj
+data/cache/
+*.nc
+*.zarr/
+.DS_Store

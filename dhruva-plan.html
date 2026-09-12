@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 14px; background: #fff; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<title>DHRUVA Build Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Tamil:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  :root {
+    --paper: #F4F6F5;
+    --surface: #FFFFFF;
+    --surface-2: #ECF1F0;
+    --ink: #0C2029;
+    --muted: #5B6E75;
+    --line: #D6DEDD;
+    --accent: #0E7C7B;
+    --accent-soft: #DCEDEC;
+    --warn: #A8601410;
+    --warn-ink: #9A5A12;
+    --danger-ink: #A8352C;
+    --good-ink: #256B4C;
+    --good-bg: #DCEEE4;
+    --warn-bg: #F6E6CE;
+    --danger-bg: #F6DDDA;
+    --bezel: #CBD5D4;
+    --tamil: "Noto Sans Tamil", "Nirmala UI", sans-serif;
+    --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #08161C;
+      --surface: #0E2029;
+      --surface-2: #122932;
+      --ink: #E7EFEE;
+      --muted: #93A7AD;
+      --line: #1E3540;
+      --accent: #35B3AE;
+      --accent-soft: #11302F;
+      --warn: #E0A86014;
+      --warn-ink: #DDA55F;
+      --danger-ink: #E0736A;
+      --good-ink: #56C08E;
+      --good-bg: #17342A;
+      --warn-bg: #33291A;
+      --danger-bg: #351F1D;
+      --bezel: #1B3039;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #08161C;
+    --surface: #0E2029;
+    --surface-2: #122932;
+    --ink: #E7EFEE;
+    --muted: #93A7AD;
+    --line: #1E3540;
+    --accent: #35B3AE;
+    --accent-soft: #11302F;
+    --warn: #E0A86014;
+    --warn-ink: #DDA55F;
+    --danger-ink: #E0736A;
+    --good-ink: #56C08E;
+    --good-bg: #17342A;
+    --warn-bg: #33291A;
+    --danger-bg: #351F1D;
+    --bezel: #1B3039;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding-inline: 24px;
+    padding-block: 56px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+  p { margin: 0; max-width: 68ch; }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(38px, 6vw, 58px); line-height: 1.02; font-weight: 700; letter-spacing: -0.02em; }
+  h2 { font-size: 25px; font-weight: 600; letter-spacing: -0.01em; }
+  h3 { font-size: 17px; font-weight: 600; }
+  a { color: var(--accent); }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lede { font-size: 20px; line-height: 1.5; max-width: 60ch; }
+  .dim { color: var(--muted); }
+
+  /* header */
+  .masthead { display: flex; flex-direction: column; gap: 18px; }
+  .namerow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 18px; }
+  .expand { font-family: var(--mono); font-size: 13px; color: var(--accent); }
+  .metabar {
+    display: flex; flex-wrap: wrap; gap: 10px 28px;
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding-block: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--muted);
+  }
+  .metabar b { color: var(--ink); font-weight: 500; }
+
+  section { display: flex; flex-direction: column; gap: 20px; }
+  .sechead { display: flex; flex-direction: column; gap: 6px; }
+
+  /* wedge cards */
+  .wedge { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .wedge > div { background: var(--surface); padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .wedge h3 { font-size: 16px; }
+  .wedge p { font-size: 15px; line-height: 1.5; }
+  .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+
+  /* generic tables */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 620px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.m, td .m { font-family: var(--mono); font-size: 13px; }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+  /* pipeline diagram */
+  .diagram { border: 1px solid var(--line); background: var(--surface); padding: 18px; overflow-x: auto; }
+  .diagram svg { display: block; min-width: 660px; width: 100%; height: auto; }
+
+  /* agent roster */
+  .roster { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .agent { background: var(--surface); padding: 14px 16px; display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; }
+  .agent .id { font-family: var(--mono); font-size: 13px; color: var(--accent); padding-top: 2px; }
+  .agent h3 { font-size: 15.5px; }
+  .agent p { font-size: 14px; line-height: 1.45; margin-top: 3px; }
+  .agent .tool { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 5px; display: block; }
+
+  /* capsule */
+  .capsule-grid { display: grid; grid-template-columns: minmax(280px, 1.1fr) minmax(280px, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .capsule-grid { grid-template-columns: 1fr; } }
+  .budget { border: 1px solid var(--line); background: var(--surface); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .bitbar { display: flex; height: 14px; border: 1px solid var(--line); overflow: hidden; }
+  .bitbar span { display: block; }
+  .total { font-family: var(--mono); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .total b { font-weight: 500; }
+
+  /* metric tiles */
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .metrics > div { background: var(--surface); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+  .metrics .v { font-family: var(--display); font-size: 27px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .metrics .k { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .metrics .n { font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+
+  /* phases */
+  .phases { display: flex; flex-direction: column; border: 1px solid var(--line); background: var(--surface); }
+  .phase { display: grid; grid-template-columns: 78px 1fr; gap: 16px; padding: 16px 18px; border-bottom: 1px solid var(--line); }
+  .phase:last-child { border-bottom: none; }
+  .phase .when { font-family: var(--mono); font-size: 12.5px; color: var(--accent); }
+  .phase h3 { font-size: 16px; }
+  .phase p { font-size: 14.5px; line-height: 1.5; margin-top: 4px; }
+  .gate { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 6px; display: block; }
+
+  /* demo beats */
+  ol.beats { margin: 0; padding-left: 0; list-style: none; counter-reset: beat; display: flex; flex-direction: column; gap: 12px; }
+  ol.beats li { counter-increment: beat; display: grid; grid-template-columns: 26px 1fr; gap: 12px; font-size: 15px; line-height: 1.5; }
+  ol.beats li::before { content: counter(beat); font-family: var(--mono); font-size: 12.5px; color: var(--accent); padding-top: 3px; }
+  ol.beats b { font-weight: 600; }
+
+  /* ---- fisherman narrative ---- */
+  .story { border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; }
+  .story .beat { display: grid; grid-template-columns: 92px 1fr; gap: 18px; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+  .story .beat:last-child { border-bottom: none; }
+  .story .clock { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; color: var(--accent); padding-top: 4px; }
+  .story .clock em { display: block; font-style: normal; color: var(--muted); font-size: 10.5px; letter-spacing: 0.1em; margin-top: 3px; }
+  .story p { font-size: 16.5px; line-height: 1.58; max-width: 62ch; }
+  .story .said { font-family: var(--tamil); font-size: 15.5px; color: var(--accent); display: block; margin-top: 6px; }
+  @media (max-width: 560px) { .story .beat { grid-template-columns: 1fr; gap: 8px; } }
+
+  /* ---- interface mocks ---- */
+  .constraints { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .constraints > div { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+  .constraints dt { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+  .constraints dd { margin: 0; font-size: 14px; line-height: 1.45; }
+
+  .mocks { display: grid; grid-template-columns: 300px minmax(260px, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .mocks { grid-template-columns: 1fr; } }
+
+  .phone { border: 8px solid var(--bezel); border-radius: 26px; background: var(--surface); padding: 14px; display: flex; flex-direction: column; gap: 12px; font-family: var(--display); }
+  .phone .statusrow { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: 0.04em; }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--warn-ink); margin-right: 5px; vertical-align: 1px; }
+  .verdict { background: var(--warn-bg); border: 1px solid var(--warn-ink); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+  .verdict .label { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; color: var(--warn-ink); }
+  .verdict .line { font-size: 19px; font-weight: 700; line-height: 1.2; }
+  .verdict .ta { font-family: var(--tamil); font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .readout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .readout > div { background: var(--surface); padding: 9px 10px; display: flex; flex-direction: column; gap: 2px; }
+  .readout .k { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .readout .v { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .readout .v small { font-size: 11px; font-weight: 500; color: var(--muted); }
+  .rowline { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--line); padding: 10px 12px; font-size: 14px; }
+  .rowline.alert { border-color: var(--danger-ink); background: var(--danger-bg); }
+  .rowline .lead { display: flex; flex-direction: column; gap: 2px; }
+  .rowline .cap { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .rowline .big { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .rowline.alert .big { color: var(--danger-ink); }
+  .btnrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn { border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-family: var(--display); font-weight: 600; font-size: 14px; padding: 13px 8px; text-align: center; }
+  .btn.solid { background: var(--accent); color: var(--surface); }
+  .mockcap { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+
+  .sidepanels { display: flex; flex-direction: column; gap: 18px; }
+  .panel { border: 1px solid var(--line); background: var(--surface); padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .panel h3 { font-size: 15px; }
+  .evrow { display: grid; grid-template-columns: 128px 1fr; gap: 10px; font-size: 13.5px; padding-bottom: 7px; border-bottom: 1px solid var(--line); }
+  .evrow:last-of-type { border-bottom: none; padding-bottom: 0; }
+  .evrow .k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 2px; }
+  .evrow .val { font-family: var(--mono); font-size: 12.5px; word-break: break-word; }
+  .bitstrip { display: flex; height: 26px; border: 1px solid var(--line); overflow: hidden; font-family: var(--mono); font-size: 9px; }
+  .bitstrip span { display: flex; align-items: center; justify-content: center; color: var(--surface); overflow: hidden; white-space: nowrap; }
+  .console { border: 1px solid var(--line); background: var(--surface); padding: 16px; overflow-x: auto; }
+  .console svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .laws { display: flex; flex-direction: column; gap: 10px; }
+  .law { display: grid; grid-template-columns: 22px 1fr; gap: 12px; font-size: 15px; line-height: 1.5; }
+  .law .mark { font-family: var(--mono); font-size: 12px; color: var(--accent); padding-top: 3px; }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 14px 18px; font-size: 15px; line-height: 1.55; }
+  .callout p { max-width: 72ch; }
+  footer { border-top: 1px solid var(--line); padding-top: 20px; font-size: 13.5px; color: var(--muted); display: flex; flex-direction: column; gap: 8px; }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); padding: 1px 5px; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">ISRO · PS 26176 · ORCA · Final plan</div>
+    <div class="namerow">
+      <h1>DHRUVA</h1>
+      <div class="expand">Deep-sea Hazard, Routing &amp; Understanding via Vernacular Agents</div>
+    </div>
+    <p class="lede">A marine decision-support system whose reasoning runs onshore and whose answers survive offshore — the full advisory compresses to <b>145 bits</b>, one NavIC broadcast segment, and the phone reconstructs the explanation in the fisherman's language with no network.</p>
+    <div class="metabar">
+      <span>Locked <b>12 Sep 2026</b></span>
+      <span>Orchestration <b>LangGraph</b></span>
+      <span>Backend <b>Python 3.12 / FastAPI</b></span>
+      <span>Frontend <b>React + MapLibre + deck.gl</b></span>
+      <span>Deploy <b>Docker on Oracle A1, Mumbai</b></span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">One day, from the deck</div>
+      <h2>What this is, told the way the user lives it</h2>
+    </div>
+    <p>Every design decision further down this page answers to these four moments. If a feature does not show up here, it is not in scope. Open the pitch with this, not with the architecture diagram.</p>
+    <div class="story">
+      <div class="beat">
+        <div class="clock">04:40<em>ASHORE</em></div>
+        <p>A fisherman in Nagapattinam asks his phone, out loud, in Tamil, whether he can go out this morning. He does not type and he does not read. The phone answers in Tamil — go, but be back by four — and shows one card: waves 2.5 m, wind 18 knots, the fishing zone 12 nautical miles to the southwest.
+        <span class="said">"இன்று காலை கடலுக்குப் போகலாமா?"</span></p>
+      </div>
+      <div class="beat">
+        <div class="clock">07:15<em>20 KM OUT</em></div>
+        <p>His signal dies. This is where every other app of this kind goes blank. His does not: before he left, the system sent a message small enough to ride ISRO's NavIC satellite signal, the channel that already reaches boats with no mobile network, and his phone kept it. He can still ask, still hear the answer, still see the zone.</p>
+      </div>
+      <div class="beat">
+        <div class="clock">09:20<em>DRIFTING</em></div>
+        <p>The current pushes him east. The phone speaks without being asked: at this heading you cross the Sri Lanka maritime line in 34 minutes, turn to 090. That sentence is the difference between an ordinary day and a seized boat with the crew in custody.</p>
+      </div>
+      <div class="beat">
+        <div class="clock">ANY TIME<em>DOUBT</em></div>
+        <p>When he doubts the advice, he taps the number. It names the satellite dataset it came from, the patch of sea it describes, and the hour it is valid for. The system cannot invent a wave height — it can only report one it actually fetched.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">The wedge</div>
+      <h2>What every other team will build, and what we build instead</h2>
+    </div>
+    <p>The default reading of this problem statement is a cloud chatbot over ocean APIs with a map. Roughly every team will submit that, and it stops working 15 km offshore, which is where the user actually is. Five decisions separate us, each of them demonstrable in 90 seconds.</p>
+    <div class="wedge">
+      <div>
+        <div class="tag">Offline</div>
+        <h3>Reasoning onshore, answers offshore</h3>
+        <p>Agents run on a server; their conclusion is encoded into a 145-bit capsule that fits one NavIC L5 segment (220 bits, 12 s broadcast). The app expands it offline into full regional-language narration from a shipped codebook.</p>
+      </div>
+      <div>
+        <div class="tag">Trust</div>
+        <h3>Numeric firewall</h3>
+        <p>The LLM never emits a number. Every figure is computed in Python from a cited grid cell, and a validator rejects any digit in the narration that is absent from the tool results. Hallucinated wave heights become structurally impossible, not merely unlikely.</p>
+      </div>
+      <div>
+        <div class="tag">Safety</div>
+        <h3>Predictive boundary ETA</h3>
+        <p>Not "you crossed the IMBL" but "at your present heading plus 0.8 kt of set, you reach the line in 34 minutes." Drift-projected, carried as an 8-bit field inside the capsule, so it still fires with the network down.</p>
+      </div>
+      <div>
+        <div class="tag">Science</div>
+        <h3>Attribution, not adjectives</h3>
+        <p>"Why has productivity declined here" is answered with a marine-heatwave detection (Hobday: 5+ days above the seasonal 90th percentile) and a chlorophyll anomaly series, with the method named in the answer.</p>
+      </div>
+      <div>
+        <div class="tag">Access</div>
+        <h3>Voice first, feature phone included</h3>
+        <p>Bhashini ASR and TTS over an IVR number, so the system works for a user with no smartphone and no reading. Text chat is the fallback, not the product.</p>
+      </div>
+      <div>
+        <div class="tag">Loop</div>
+        <h3>Catch reports score the PFZ</h3>
+        <p>Returning boats log catch against the zone they were advised toward. That gives a rolling skill score per zone — a measured accuracy number in the demo, which no static advisory app can show.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Architecture</div>
+      <h2>One graph, ten nodes, deterministic where it counts</h2>
+    </div>
+    <p>LangGraph holds the state machine. Language handling wraps the whole graph; retrieval and computation are ordinary Python tools; the LLM plans, selects tools and narrates, and nothing else. Every run emits an evidence bundle that the UI renders and the codec compresses.</p>
+    <div class="diagram">
+      <svg viewBox="0 0 880 200" role="img" aria-label="Query flows through language, planner, parallel data and analysis agents, risk engine, route and evidence bundle, then capsule codec out to four delivery channels">
+        <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--ink)">
+          <rect x="4" y="76" width="92" height="44" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <text x="50" y="94" text-anchor="middle" fill="var(--ink)">voice / text</text>
+          <text x="50" y="109" text-anchor="middle" fill="var(--muted)">12 languages</text>
+
+          <rect x="120" y="76" width="86" height="44" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+          <text x="163" y="94" text-anchor="middle" fill="var(--ink)">planner</text>
+          <text x="163" y="109" text-anchor="middle" fill="var(--muted)">node 0</text>
+
+          <rect x="230" y="16" width="132" height="36" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <text x="296" y="38" text-anchor="middle" fill="var(--ink)">data discovery · 2</text>
+          <rect x="230" y="60" width="132" height="36" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <text x="296" y="82" text-anchor="middle" fill="var(--ink)">ocean analytics · 3</text>
+          <rect x="230" y="104" width="132" height="36" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <text x="296" y="126" text-anchor="middle" fill="var(--ink)">weather · 4</text>
+          <rect x="230" y="148" width="132" height="36" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <text x="296" y="170" text-anchor="middle" fill="var(--ink)">geospatial · 5</text>
+
+          <rect x="392" y="60" width="104" height="80" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+          <text x="444" y="92" text-anchor="middle" fill="var(--ink)">risk engine</text>
+          <text x="444" y="108" text-anchor="middle" fill="var(--muted)">thresholds</text>
+          <text x="444" y="123" text-anchor="middle" fill="var(--muted)">node 6</text>
+
+          <rect x="526" y="60" width="104" height="80" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <text x="578" y="88" text-anchor="middle" fill="var(--ink)">route</text>
+          <text x="578" y="104" text-anchor="middle" fill="var(--ink)">evidence</text>
+          <text x="578" y="122" text-anchor="middle" fill="var(--muted)">nodes 7–8</text>
+
+          <rect x="660" y="60" width="104" height="80" fill="var(--accent-soft)" stroke="var(--accent)"></rect>
+          <text x="712" y="88" text-anchor="middle" fill="var(--ink)">capsule</text>
+          <text x="712" y="104" text-anchor="middle" fill="var(--ink)">codec</text>
+          <text x="712" y="122" text-anchor="middle" fill="var(--muted)">node 9</text>
+
+          <g fill="var(--muted)" font-size="11">
+            <text x="800" y="72">NavIC</text>
+            <text x="800" y="92">SMS</text>
+            <text x="800" y="112">PWA</text>
+            <text x="800" y="132">IVR</text>
+          </g>
+
+          <g stroke="var(--muted)" fill="none" stroke-width="1.2">
+            <path d="M96 98 H118"></path>
+            <path d="M206 98 H218 M218 34 H228 M218 78 H228 M218 122 H228 M218 166 H228 M218 34 V166"></path>
+            <path d="M362 34 H376 M362 78 H376 M362 122 H376 M362 166 H376 M376 34 V166 M376 100 H390"></path>
+            <path d="M496 100 H524"></path>
+            <path d="M630 100 H658"></path>
+            <path d="M764 100 H782 M782 68 H796 M782 88 H796 M782 108 H796 M782 128 H796 M782 68 V128"></path>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="roster">
+      <div class="agent"><div class="id">0</div><div><h3>Planner</h3><p>Classifies intent, detects language, decomposes into a tool plan with a token and latency budget, routes to the parallel branch.</p><span class="tool">LangGraph router · Gemini 2.5 Flash</span></div></div>
+      <div class="agent"><div class="id">1</div><div><h3>Language</h3><p>Speech to text in, translation both ways, speech out. Wraps the graph rather than sitting inside it, so every downstream node works in English.</p><span class="tool">Bhashini ULCA pipeline · IndicTrans2 fallback</span></div></div>
+      <div class="agent"><div class="id">2</div><div><h3>Data discovery</h3><p>Given variable, bounding box and time, picks the source and returns dataset IDs plus fetch URLs. Registry-driven, so a new dataset is a YAML entry, not code.</p><span class="tool">ERDDAP griddap · Copernicus · Open-Meteo</span></div></div>
+      <div class="agent"><div class="id">3</div><div><h3>Ocean analytics</h3><p>SST fronts, chlorophyll gradients, PFZ proxy zones, anomaly series, marine heatwave detection. Pure array computation, no model in the loop.</p><span class="tool">xarray · dask · Zarr cache</span></div></div>
+      <div class="agent"><div class="id">4</div><div><h3>Weather intelligence</h3><p>Wind, significant wave height, swell period, squall and lightning risk, cyclone track proximity, for now plus 72 hours.</p><span class="tool">Open-Meteo Marine · IMD bulletins</span></div></div>
+      <div class="agent"><div class="id">5</div><div><h3>Geospatial reasoning</h3><p>Distance to IMBL, EEZ, marine protected areas and closed zones; drift-projected crossing ETA from heading, speed and surface current.</p><span class="tool">PostGIS · marineregions EEZ · shapely</span></div></div>
+      <div class="agent"><div class="id">6</div><div><h3>Risk engine</h3><p>Deterministic thresholds → SAFE / CAUTION / NO-GO with the rule that fired. Boat class changes the thresholds: a 9 m FRP boat is not a 24 m trawler.</p><span class="tool">Rule table from INCOIS OSF criteria</span></div></div>
+      <div class="agent"><div class="id">7</div><div><h3>Route</h3><p>Least-cost path over a wave, wind and current cost grid with a no-go mask, returning waypoints and a fuel proxy — a solver, not a prompt.</p><span class="tool">A* over 0.05° grid · isochrones</span></div></div>
+      <div class="agent"><div class="id">8</div><div><h3>Evidence</h3><p>Builds the card behind every claim: value, dataset ID, timestamp, grid cell, threshold crossed. This is what the numeric firewall validates against.</p><span class="tool">Pydantic schema · Langfuse trace</span></div></div>
+      <div class="agent"><div class="id">9</div><div><h3>Capsule codec</h3><p>Encodes the decision to 145 bits, picks the reason code, and hands it to whichever channel is reachable. The offline expander is the same codebook in reverse.</p><span class="tool">bitstruct · 256-entry reason codebook</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Signature mechanism</div>
+      <h2>The 145-bit advisory capsule</h2>
+    </div>
+    <p>ISRO's own signal-in-space ICD for INCOIS messages carries advisories on NavIC L5 at 1176.45 MHz in 220-bit segments, up to ten segments per message, 12 to 120 seconds of broadcast. Message ID 20 carries PFZ, ID 21 carries high-wave, cyclone, tsunami and all-clear warnings. That constraint is the design brief nobody else will read: if an answer cannot fit in a segment, it cannot reach a boat that has no cellular signal.</p>
+    <div class="capsule-grid">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Field</th><th>Encoding</th><th class="num">Bits</th></tr></thead>
+          <tbody>
+            <tr><td>Message type + schema</td><td class="m">enum</td><td class="num">7</td></tr>
+            <tr><td>Issue time</td><td class="m">15-min slot, 7-day wrap</td><td class="num">10</td></tr>
+            <tr><td>Validity</td><td class="m">hours, 0–15</td><td class="num">4</td></tr>
+            <tr><td>Zone cell + fine offset</td><td class="m">0.05° grid over Indian EEZ</td><td class="num">36</td></tr>
+            <tr><td>Risk class</td><td class="m">safe / caution / no-go</td><td class="num">2</td></tr>
+            <tr><td>Hazard flags</td><td class="m">bitmap: wave, wind, squall, lightning, cyclone, current, fog, tsunami</td><td class="num">8</td></tr>
+            <tr><td>Wave H<sub>s</sub></td><td class="m">0–7.75 m @ 0.25 m</td><td class="num">5</td></tr>
+            <tr><td>Wind speed + direction</td><td class="m">0–63 kt, 16-point</td><td class="num">10</td></tr>
+            <tr><td>Current speed + set</td><td class="m">0–3.1 kt, 16-point</td><td class="num">9</td></tr>
+            <tr><td>SST</td><td class="m">18–33.5 °C @ 0.5 °C</td><td class="num">5</td></tr>
+            <tr><td>Chlorophyll class</td><td class="m">4 levels</td><td class="num">2</td></tr>
+            <tr><td>PFZ bearing, distance, confidence</td><td class="m">16-point, 0–63 nm</td><td class="num">12</td></tr>
+            <tr><td>Boundary distance + type</td><td class="m">0–31 nm; IMBL / MPA / closed</td><td class="num">7</td></tr>
+            <tr><td>Boundary ETA</td><td class="m">0–255 min, drift-projected</td><td class="num">8</td></tr>
+            <tr><td>Reason code</td><td class="m">codebook index, 256 templates</td><td class="num">8</td></tr>
+            <tr><td>Evidence hash</td><td class="m">truncated, for audit</td><td class="num">12</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="budget">
+        <h3>Bit budget</h3>
+        <div class="bitbar" aria-hidden="true">
+          <span style="width:65.9%; background: var(--accent);"></span>
+          <span style="width:34.1%; background: var(--surface-2);"></span>
+        </div>
+        <div class="total"><span>Payload</span><b>145 bits</b></div>
+        <div class="total"><span>NavIC segment</span><b>220 bits</b></div>
+        <div class="total"><span>Headroom</span><b>75 bits</b></div>
+        <p style="font-size:14.5px; line-height:1.5;">The 8-bit reason code is the trick. The server decides <i>why</i>; the phone stores 256 explanation templates in 12 languages and renders the sentence locally. A full spoken Tamil advisory costs the link one index, not a paragraph.</p>
+        <p style="font-size:14.5px; line-height:1.5;" class="dim">Headroom holds a 4-waypoint return route at reduced precision when the risk class is NO-GO.</p>
+      </div>
+    </div>
+    <div class="callout">
+      <p><b>We do not need the satellite to prove the satellite claim, and we are not buying hardware to fake it.</b> The NavIC uplink is ISRO's, so no team in this competition gets to transmit on it. That means the demonstrable claim was never "we broadcast" — it is "our advisory fits the segment ISRO already broadcasts on." That is arithmetic, and arithmetic is checkable on a table in front of a judge. We carry the identical 145-bit wire format over three transports we control: a QR code (19 bytes, base32 for scanner reliability), Bluetooth between two phones, and SMS. Same bits, same decoder, same spoken sentence, no purchase order and no lead time.</p>
+    </div>
+    <div class="capsule-grid">
+      <div class="panel">
+        <h3>Bonus track, only if the hardware is free</h3>
+        <p style="font-size:14.5px; line-height:1.5;">GNSS-SDR has published performance figures for IRNSS L5 on a low-cost RF front end (NAVIGATION, Vol 70 No 2), and an archived RTL-SDR NavIC receiver already does acquisition, tracking and subframe extraction at 1176.45 MHz. Neither decodes INCOIS message IDs 20 and 21 — that layer does not exist in open source, and publishing one would be a first.</p>
+        <p style="font-size:14.5px; line-height:1.5;">We are not buying an SDR to find out. One person files a loan request with the MAIT communications lab for an RTL-SDR or USRP in week one; if a unit turns up, the message-ID-20/21 decoder is a weekend of work on top of an existing tracking loop, with a hard abandon date at D13. If none turns up, nothing on the critical path notices. Free hardware is worth asking for; paid hardware is not worth the schedule risk.</p>
+      </div>
+      <div class="panel">
+        <h3>Offline envelope — state it before you are asked</h3>
+        <p style="font-size:14.5px; line-height:1.5;">With no network the app answers from the last capsule plus cached fields and the phone's own GPS. That covers the verdict, the numbers in the capsule, the PFZ bearing, boundary ETA against live position, and route replay. It does not cover a new free-form question about a region that was never fetched. Say this in the demo; a judge who finds the edge you hid trusts nothing else you claimed.</p>
+        <p style="font-size:14.5px; line-height:1.5;">Offline figures are <i>quantised</i>, not rounded for display: wave to 0.25 m, SST to 0.5 °C, current to 0.1 kt, every bearing to the 16-point compass. Pick demo values that sit on the grid and the online card and the decoded card agree to the digit — otherwise a judge watches the wave height change when you switch off the radio.</p>
+        <p style="font-size:14.5px; line-height:1.5;"><b>Broadcast is the scaling story.</b> One capsule per zone serves every boat in that zone, so cost grows with the number of zones, not the number of users. A chatbot costs one inference per question per user; this costs one encode per zone per cycle.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Interface</div>
+      <h2>Three surfaces over one graph</h2>
+    </div>
+    <p>The design constraint is not a screen size, it is a wet deck at 11am with the sun overhead, one hand on the tiller and possibly no reading. That rules out a chat transcript as the primary surface. The conversation is the input; a single decision card is the output, and the map is where the decision is checked, not where it is read.</p>
+    <dl class="constraints">
+      <div><dt>Glare</dt><dd>Contrast floor of 7:1, no grey-on-grey, no thin weights below 15 px.</dd></div>
+      <div><dt>Wet hands</dt><dd>Touch targets 56 px minimum, no long-press, no drag-only controls.</dd></div>
+      <div><dt>Literacy</dt><dd>Colour, icon, and spoken audio carry the verdict together. Colour is never alone.</dd></div>
+      <div><dt>Link</dt><dd>Every screen states its data age and whether it came from network or capsule.</dd></div>
+      <div><dt>Battery</dt><dd>Map tiles capped to the cached coastal window; no continuous GPS polling.</dd></div>
+    </dl>
+
+    <div class="mocks">
+      <div>
+        <div class="phone">
+          <div class="statusrow">
+            <span><span class="dot"></span>OFFLINE · CAPSULE 14 MIN OLD</span>
+            <span>தமிழ்</span>
+          </div>
+          <div class="verdict">
+            <div class="label">CAUTION</div>
+            <div class="line">Go, but return before 16:00</div>
+            <div class="ta">எச்சரிக்கை — மாலை 4 மணிக்கு முன் திரும்பவும்</div>
+          </div>
+          <div class="readout">
+            <div><div class="k">Wave</div><div class="v">2.5<small> m</small></div></div>
+            <div><div class="k">Wind</div><div class="v">18<small> kt NW</small></div></div>
+            <div><div class="k">Set</div><div class="v">0.8<small> kt</small></div></div>
+          </div>
+          <div class="rowline">
+            <div class="lead"><span class="cap">Fishing zone</span><span class="big">225° SW · 12 nm</span></div>
+            <span class="cap">CONF 2/3</span>
+          </div>
+          <div class="rowline alert">
+            <div class="lead"><span class="cap">IMBL at present heading</span><span class="big">34 min</span></div>
+            <span class="cap">TURN 090°</span>
+          </div>
+          <div class="btnrow">
+            <div class="btn solid">Listen</div>
+            <div class="btn">Show route</div>
+          </div>
+        </div>
+        <div class="mockcap">Surface 1 — fisherman, PWA, shown here in its offline state</div>
+      </div>
+
+      <div class="sidepanels">
+        <div class="panel">
+          <h3>Every number opens its evidence</h3>
+          <div class="evrow"><div class="k">Value</div><div class="val">2.5 m significant wave height</div></div>
+          <div class="evrow"><div class="k">Dataset</div><div class="val">open_meteo_marine · wave_height</div></div>
+          <div class="evrow"><div class="k">Cell</div><div class="val">11.05°N, 79.85°E · 0.05° grid</div></div>
+          <div class="evrow"><div class="k">Valid</div><div class="val">2026-09-13 06:00 IST · +18 h forecast</div></div>
+          <div class="evrow"><div class="k">Rule</div><div class="val">WAVE-C2 · caution ≥ 2.0 m for FRP &lt; 12 m</div></div>
+          <p style="font-size:14px; line-height:1.5; color: var(--muted);">Tapping the figure in the card opens this. It is the same bundle the numeric firewall validated against, so the UI cannot show a number the system cannot source.</p>
+        </div>
+        <div class="panel">
+          <h3>Capsule inspector</h3>
+          <div class="bitstrip" aria-hidden="true">
+            <span style="width:9.55%; background:var(--muted);">hdr</span>
+            <span style="width:16.36%; background:var(--accent);">zone 36</span>
+            <span style="width:4.55%; background:var(--good-ink);">risk</span>
+            <span style="width:19.55%; background:var(--warn-ink);">fields 43</span>
+            <span style="width:6.82%; background:var(--danger-ink);">bnd</span>
+            <span style="width:9.09%; background:var(--accent);">why</span>
+            <span style="width:34.09%; background:var(--surface-2); color:var(--muted);">75 free</span>
+          </div>
+          <p style="font-size:14px; line-height:1.5;">A judge-facing panel that shows the actual 145 bits, which field each run occupies, and the sentence the codebook expanded them into. The mechanism is invisible by design, so the UI has to make it visible once.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="console">
+      <svg viewBox="0 0 760 250" role="img" aria-label="Shore console wireframe: fleet list on the left, map with EEZ line, boundary line, fishing zone and vessel markers in the centre, broadcast composer on the right">
+        <g font-family="IBM Plex Mono, monospace" font-size="10.5">
+          <rect x="1" y="1" width="758" height="248" fill="var(--surface)" stroke="var(--line)"></rect>
+          <line x1="150" y1="1" x2="150" y2="249" stroke="var(--line)"></line>
+          <line x1="570" y1="1" x2="570" y2="249" stroke="var(--line)"></line>
+
+          <text x="14" y="24" fill="var(--muted)">FLEET · 42 AT SEA</text>
+          <g fill="var(--ink)">
+            <circle cx="18" cy="46" r="4" fill="var(--danger-ink)"></circle><text x="30" y="50">IND-TN-4417</text>
+            <circle cx="18" cy="70" r="4" fill="var(--warn-ink)"></circle><text x="30" y="74">IND-TN-2280</text>
+            <circle cx="18" cy="94" r="4" fill="var(--good-ink)"></circle><text x="30" y="98">IND-TN-9051</text>
+            <circle cx="18" cy="118" r="4" fill="var(--good-ink)"></circle><text x="30" y="122">IND-PY-0312</text>
+          </g>
+          <text x="14" y="158" fill="var(--muted)">BREACH WATCH</text>
+          <rect x="14" y="168" width="122" height="34" fill="var(--danger-bg)" stroke="var(--danger-ink)"></rect>
+          <text x="24" y="182" fill="var(--danger-ink)">4417 · IMBL 34 min</text>
+          <text x="24" y="195" fill="var(--muted)">drift 0.8 kt · 112°</text>
+
+          <rect x="166" y="14" width="390" height="222" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <path d="M180 30 C214 78 196 140 226 222" fill="none" stroke="var(--muted)" stroke-width="2"></path>
+          <text x="186" y="46" fill="var(--muted)">coast</text>
+          <path d="M420 18 L446 232" fill="none" stroke="var(--danger-ink)" stroke-width="1.6" stroke-dasharray="7 5"></path>
+          <text x="452" y="40" fill="var(--danger-ink)">IMBL</text>
+          <ellipse cx="330" cy="118" rx="62" ry="38" fill="var(--accent-soft)" stroke="var(--accent)"></ellipse>
+          <text x="330" y="114" text-anchor="middle" fill="var(--accent)">PFZ · conf 2/3</text>
+          <text x="330" y="130" text-anchor="middle" fill="var(--muted)">chl 0.9 · SST 28.4</text>
+          <g>
+            <circle cx="404" cy="150" r="5" fill="var(--danger-ink)"></circle>
+            <path d="M404 150 L432 176" stroke="var(--danger-ink)" stroke-width="1.4"></path>
+            <circle cx="300" cy="168" r="5" fill="var(--warn-ink)"></circle>
+            <circle cx="262" cy="96" r="5" fill="var(--good-ink)"></circle>
+            <circle cx="342" cy="196" r="5" fill="var(--good-ink)"></circle>
+          </g>
+          <rect x="176" y="196" width="104" height="30" fill="var(--surface)" stroke="var(--line)"></rect>
+          <text x="186" y="209" fill="var(--muted)">LAYERS</text>
+          <text x="186" y="221" fill="var(--ink)">SST · chl · Hs</text>
+
+          <text x="584" y="24" fill="var(--muted)">BROADCAST</text>
+          <rect x="584" y="36" width="160" height="58" fill="var(--warn-bg)" stroke="var(--warn-ink)"></rect>
+          <text x="594" y="54" fill="var(--warn-ink)">CAUTION · zone 118</text>
+          <text x="594" y="70" fill="var(--ink)">return by 16:00</text>
+          <text x="594" y="85" fill="var(--muted)">reason 041 · 12 langs</text>
+          <text x="584" y="118" fill="var(--muted)">PAYLOAD</text>
+          <rect x="584" y="128" width="106" height="12" fill="var(--accent)"></rect>
+          <rect x="690" y="128" width="54" height="12" fill="var(--surface-2)" stroke="var(--line)"></rect>
+          <text x="584" y="156" fill="var(--ink)">145 / 220 bits</text>
+          <text x="584" y="172" fill="var(--muted)">1 segment · 12 s</text>
+          <rect x="584" y="190" width="160" height="34" fill="var(--accent)"></rect>
+          <text x="664" y="211" text-anchor="middle" fill="var(--surface)">SEND TO 42 BOATS</text>
+        </g>
+      </svg>
+      <div class="mockcap">Surface 2 — shore console for coastal authority and disaster management: fleet state, breach watch, layered map, and a composer that shows the payload cost before it broadcasts</div>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Surface</th><th>User</th><th>Screens</th><th>Built in</th></tr></thead>
+        <tbody>
+          <tr><td>Boat</td><td>Fisherman, crew</td><td class="m">verdict card · voice ask · PFZ compass · route · boundary countdown · capsule history</td><td class="m">PWA, offline-first, 12 languages</td></tr>
+          <tr><td>Shore</td><td>Coastal authority, disaster management, operators</td><td class="m">fleet map · breach watch · zone layers · broadcast composer · advisory log</td><td class="m">desktop React + MapLibre + deck.gl</td></tr>
+          <tr><td>Study</td><td>Researcher, INCOIS analyst</td><td class="m">anomaly explorer · time series · marine heatwave view · trace inspector · dataset registry</td><td class="m">same app, analysis routes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="laws">
+      <div class="law"><span class="mark">01</span><div><b>Verdict before detail.</b> The first thing on screen is GO, CAUTION or NO-GO with a plain-language instruction. Numbers sit below it; the chat transcript sits below that.</div></div>
+      <div class="law"><span class="mark">02</span><div><b>Every figure is tappable</b> and opens its evidence card. A number with no source cannot be rendered — the component requires the bundle.</div></div>
+      <div class="law"><span class="mark">03</span><div><b>Answers are map cards, not paragraphs.</b> A location question renders a map with the answer drawn on it, plus one sentence and one spoken line.</div></div>
+      <div class="law"><span class="mark">04</span><div><b>Data age is always visible.</b> Network, capsule or stale, with minutes since issue, on every surface including the console.</div></div>
+      <div class="law"><span class="mark">05</span><div><b>NO-GO outranks everything.</b> A favourable fishing zone never renders above an active hazard, and the route view refuses to draw a path through a no-go mask.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Stack</div>
+      <h2>Locked choices</h2>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Choice</th><th>Why this, over the obvious alternative</th></tr></thead>
+        <tbody>
+          <tr><td>Orchestration</td><td class="m">LangGraph 0.2 + Pydantic v2</td><td>Explicit state, checkpointing and cyclic re-planning. CrewAI's role-play abstraction hides exactly the control we need to demo.</td></tr>
+          <tr><td>Model — planning</td><td class="m">Gemini 2.5 Flash via OpenRouter</td><td>Cheap and fast for tool selection and decomposition, where the reasoning is structural rather than linguistic.</td></tr>
+          <tr><td>Model — Indic</td><td class="m">Sarvam-30B (API) · Sarvam-105B open weights</td><td>Trained for 22 Indian languages, Apache 2.0, Indian-hosted. An ISRO panel reads a sovereign model in the stack as an argument, not a detail. Qwen3-8B on Ollama remains the offline path.</td></tr>
+          <tr><td>Backend</td><td class="m">Python 3.12 · FastAPI · arq</td><td>Async tool fan-out and scheduled ingests without dragging in Celery's broker weight.</td></tr>
+          <tr><td>Array compute</td><td class="m">xarray · dask · Zarr cache</td><td>NetCDF and OPeNDAP are the native formats of every ocean source. Zarr caching of subsets is what gets a query under 6 s.</td></tr>
+          <tr><td>Database</td><td class="m">PostgreSQL 16 · PostGIS · pgvector · TimescaleDB</td><td>One engine for geofencing, advisory RAG and vessel tracks. A separate vector DB would be a fourth service for no gain.</td></tr>
+          <tr><td>Tiles</td><td class="m">TiTiler (raster) · pg_tileserv (vector)</td><td>Serve COGs and PostGIS layers directly; no pre-rendering step in a 3-week build.</td></tr>
+          <tr><td>Frontend</td><td class="m">React 19 · Vite · TypeScript · MapLibre GL · deck.gl</td><td>MapLibre over Mapbox: no token, no quota, no cost surprise in front of judges. deck.gl for the grid and track layers.</td></tr>
+          <tr><td>Offline</td><td class="m">PWA · service worker · Dexie (IndexedDB)</td><td>Capsule store, codebook and last-known fields survive airplane mode. A native app would cost a week we do not have.</td></tr>
+          <tr><td>Language</td><td class="m">Bhashini ULCA primary · Sarvam Saarika ASR and Bulbul v3 TTS as the quality path</td><td>Bhashini is free and government-run, which is the right default. Sarvam's speech models are the fallback when Bhashini rate-limits, and the better voice for the recorded demo.</td></tr>
+          <tr><td>Voice channel</td><td class="m">Asterisk IVR + WhatsApp Cloud API</td><td>Reaches a feature phone. The chat UI alone excludes a large share of the actual user base.</td></tr>
+          <tr><td>Observability</td><td class="m">Langfuse, self-hosted</td><td>Traces double as the explainability record. The judge-facing "show your reasoning" panel is a Langfuse trace, rendered.</td></tr>
+          <tr><td>Infra</td><td class="m">Docker Compose · Oracle A1 (2 OCPU / 12 GB, Mumbai) · Caddy</td><td>Already running, free tier, Mumbai region keeps latency to INCOIS and users low.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Data</div>
+      <h2>Sources, access, and the traps in each</h2>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Source</th><th>Gives</th><th>Access</th><th>Trap</th></tr></thead>
+        <tbody>
+          <tr><td>INCOIS ERDDAP</td><td>Oceansat-2 OCM ocean colour, Indian Ocean grids</td><td class="m">griddap REST → JSON / CSV / NetCDF, no key</td><td>TLS chain fails verification from some hosts — pin the CA bundle, do not disable verification.</td></tr>
+          <tr><td>Copernicus Marine</td><td>SST, chlorophyll, currents, waves, global</td><td class="m">copernicusmarine Python toolbox, free account</td><td>Registration approval is not instant — do it on day 1, not day 12.</td></tr>
+          <tr><td>Open-Meteo Marine</td><td>Wave height, swell, wind, forecast + ERA5 archive</td><td class="m">REST, no key</td><td>Model resolution is coarse near shore; label it as forecast, not observation.</td></tr>
+          <tr><td>MOSDAC (ISRO)</td><td>INSAT-3D/3DR imagery, cyclone products</td><td class="m">registered download, ordered products</td><td>Bulk ordering is slow. Cache a fixed demo window locally.</td></tr>
+          <tr><td>INCOIS PFZ advisory</td><td>Official daily PFZ lines, 586 landing centres</td><td class="m">HTML / text bulletins — no API</td><td>Must be scraped and attributed. Say so in the architecture diagram rather than implying a feed.</td></tr>
+          <tr><td>NASA PACE OCI</td><td>Hyperspectral ocean colour — phytoplankton community, not just chlorophyll concentration</td><td class="m">OB.DAAC · earthaccess Python</td><td>Enrichment only. It sharpens the decline-attribution answer; never let the core path depend on it.</td></tr>
+          <tr><td>Marine Regions (VLIZ)</td><td>EEZ, IMBL, MPA polygons</td><td class="m">shapefile download → PostGIS</td><td>Indicative boundaries. Label them as such in the UI; never render as a legal line.</td></tr>
+          <tr><td>GEBCO</td><td>Bathymetry for depth and shelf context</td><td class="m">grid download</td><td>Large file; subset to the Indian EEZ once and store as COG.</td></tr>
+          <tr><td>Bhashini</td><td>ASR, translation, TTS for 22 languages</td><td class="m">two-step config then compute call</td><td>Auth is a config call that returns the real endpoint and key — build that handshake first, it surprises people.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Sequence</div>
+      <h2>Build phases</h2>
+    </div>
+    <p>Twenty-one working days, sized so that the offline demo exists by the halfway point. Compress or stretch proportionally to your actual deadline, but keep the order: the capsule is the differentiator and it must not be the thing that runs out of time.</p>
+    <div class="phases">
+      <div class="phase"><div class="when">D1–D2</div><div><h3>Accounts and skeleton</h3><p>Copernicus, Bhashini and Sarvam registrations on day one — approval is not instant, and it is the only lead time left on this plan. One ERDDAP query returning real numbers, FastAPI and Postgres up in Compose, repo and CLAUDE.md with the decisions on this page. File the SDR loan request with the MAIT communications lab in the same sitting: it costs nothing and blocks nothing.</p><span class="gate">Gate: a real SST value for a real lat/lon, fetched in code.</span></div></div>
+      <div class="phase"><div class="when">D3–D6</div><div><h3>Data plane</h3><p>Source registry, xarray fetch and subset layer, Zarr cache, PostGIS load of EEZ, IMBL and MPA polygons, PFZ scraper with attribution.</p><span class="gate">Gate: one function answers "conditions at this point, now" from four sources.</span></div></div>
+      <div class="phase"><div class="when">D7–D10</div><div><h3>Graph and risk engine</h3><p>LangGraph nodes 0 and 2–6, threshold table per boat class, evidence bundle schema, numeric firewall validator with its own unit tests.</p><span class="gate">Gate: firewall catches an injected fake number in CI.</span></div></div>
+      <div class="phase"><div class="when">D11–D13</div><div><h3>Capsule codec</h3><p>Encoder, decoder, 256-entry reason codebook, 12-language template pack, QR, Bluetooth and SMS transport, airplane-mode decode on a phone. The TypeScript decoder for the PWA runs the same corpus as the Python one in CI.</p><span class="gate">Gate: a phone in airplane mode scans a QR and speaks a full Tamil advisory.</span></div></div>
+      <div class="phase"><div class="when">D14–D17</div><div><h3>Interfaces</h3><p>Boat surface first (verdict card, evidence card, PFZ compass, countdown), then the shore console and its broadcast composer, then the study routes. Bhashini voice loop, IVR flow, WhatsApp path.</p><span class="gate">Gate: a spoken Tamil question returns a spoken Tamil answer with a map.</span></div></div>
+      <div class="phase"><div class="when">D18–D21</div><div><h3>Evaluation and rehearsal</h3><p>60-query benchmark, latency profiling, catch-feedback scoring, failure drills (API down, no network), deck, and three timed run-throughs.</p><span class="gate">Gate: full demo twice in a row with no operator rescue.</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Proof</div>
+      <h2>Evaluation targets</h2>
+    </div>
+    <p>Build the benchmark in week one and quote it on the final slide. Teams that show measured numbers beat teams that show a working demo, because a demo is one sample.</p>
+    <div class="metrics">
+      <div><div class="k">Numeric provenance</div><div class="v">100%</div><div class="n">Every figure traceable to a dataset cell. Hard gate in CI, not a target.</div></div>
+      <div><div class="k">Intent routing</div><div class="v">≥ 92%</div><div class="n">On a 60-query set spanning the eight question types in the PS.</div></div>
+      <div><div class="k">p95 latency</div><div class="v">≤ 6 s</div><div class="n">Online path. Offline capsule decode budget is 400 ms.</div></div>
+      <div><div class="k">Boundary lead time</div><div class="v">≥ 20 min</div><div class="n">Median warning before projected IMBL crossing in replayed tracks.</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Exposure</div>
+      <h2>Risks worth naming before a judge does</h2>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>We cannot transmit on NavIC, so a judge asks whether the offline demo is staged</td><td>Say it before they do. The uplink is ISRO's; our claim is segment conformance, which is arithmetic and checkable against the field table on this page. The identical bitstream runs over QR, Bluetooth and SMS, and the capsule inspector shows the actual 145 bits on screen. No rung of that ladder needs hardware we do not have.</td></tr>
+          <tr><td>Free-form questions asked offline</td><td>Published offline envelope, and a UI state that says plainly what it cannot answer without a link rather than guessing.</td></tr>
+          <tr><td>PFZ has no machine interface</td><td>Scraper plus cache plus visible attribution, and a written note that a formal INCOIS feed is the production path.</td></tr>
+          <tr><td>Bhashini rate limits or downtime during the demo</td><td>IndicTrans2 and a local TTS pinned in the image; pre-warmed audio for the scripted queries.</td></tr>
+          <tr><td>Advice is safety-critical</td><td>Every response carries "advisory only, follow official INCOIS and IMD warnings", and NO-GO always dominates a favourable PFZ.</td></tr>
+          <tr><td>Vessel positions are personal data</td><td>Positions quantised to the 0.05° grid at rest, tracks purged after 7 days, no third-party analytics. Say this unprompted.</td></tr>
+          <tr><td>Oracle A1 free tier under demo load</td><td>Pre-computed Zarr for the demo bounding box; the live path is proven once, then served warm.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sechead">
+      <div class="eyebrow">Demo</div>
+      <h2>Six beats, eight minutes</h2>
+    </div>
+    <ol class="beats">
+      <li><b>Spoken Tamil question</b> from a phone: "நாளை காலை கடலுக்குப் போகலாமா?" Answer returns spoken, with a map and a CAUTION chip.</li>
+      <li><b>Open the evidence panel.</b> Wave height 2.5 m from a named dataset and timestamp, the threshold that fired, the rule ID. Invite them to check the number.</li>
+      <li><b>Ask for the nearest PFZ</b> and a safe route to it. Show the cost grid and the no-go mask, then the waypoints and fuel proxy.</li>
+      <li><b>Airplane mode.</b> Ask again. The 145-bit capsule from before decodes on-device and speaks a full advisory with no network. This is the moment that wins the room.</li>
+      <li><b>Drift toward the IMBL</b> on a replayed track. Alert fires 34 minutes ahead, in the local language, still offline.</li>
+      <li><b>Why has the catch fallen here?</b> Marine heatwave over 11 days, chlorophyll anomaly series, method named — then the benchmark slide.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <p>Assumptions: three-week build, team splitting into data plane, agent graph, codec and interfaces; judged on an ISRO panel that values ISRO-native infrastructure. If any of those is wrong, the phase table moves — the wedge does not.</p>
+    <p>Grounding: ISRO signal-in-space ICD for INCOIS messages via IRNSS (220-bit segments, message IDs 20 and 21, L5 at 1176.45 MHz) · GNSS-SDR IRNSS L5 performance, NAVIGATION 70(2) · INCOIS ERDDAP Oceansat-2 datasets · Copernicus Marine Toolbox · Open-Meteo Marine · NASA PACE OB.DAAC · Marine Regions EEZ · Bhashini ULCA · Sarvam model and speech APIs · Hobday et al. marine heatwave definition.</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

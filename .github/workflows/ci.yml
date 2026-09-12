@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install
+        run: uv pip install --system -e "backend[dev]"
+
+      - name: Lint
+        run: |
+          ruff check backend/
+          ruff format --check backend/
+
+      - name: Type-check
+        run: pyright
+
+      - name: Test
+        run: pytest backend/tests -q
+
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gate 1 — stack comes up and /health returns 200
+        run: |
+          cp .env.example .env
+          {
+            echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
+            echo "LANGFUSE_NEXTAUTH_SECRET=$(openssl rand -hex 16)"
+            echo "LANGFUSE_SALT=$(openssl rand -hex 16)"
+            echo "LANGFUSE_ENCRYPTION_KEY=$(openssl rand -hex 32)"
+          } >> .env
+          docker compose up -d --build --wait --wait-timeout 300
+          curl -fsS http://localhost:8000/health | tee /dev/stderr | grep -q '"status":"ok"'
+          curl -fsS http://localhost:8000/health/ready | tee /dev/stderr | grep -q '"ready":true'
+          docker compose down -v
