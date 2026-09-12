@@ -65,7 +65,9 @@ _BEARING_DEG = re.compile(r"(?P<val>\d{1,3}(?:\.\d+)?)\s*(?:deg(?:rees?)?|°)", 
 _BEARING_WORD = re.compile(r"\b(?:towards?|direction of)\s+(?P<w>[NSEW]{1,3})\b", re.I)
 _DEPTH = re.compile(r"depth[^0-9]{0,12}(?P<val>\d+(?:\.\d+)?)\s*(?:m|metres?|meters?)\b", re.I)
 _LATLON = re.compile(
-    r"(?P<lat>\d{1,2}(?:\.\d+)?)\s*°?\s*(?P<ns>[NS])[ ,/]+(?P<lon>\d{1,3}(?:\.\d+)?)\s*°?\s*(?P<ew>[EW])",
+    r"(?P<lat>\d{1,2}(?:\.\d+)?)\s*°?\s*(?P<ns>[NS])"
+    r"[ ,/]+"
+    r"(?P<lon>\d{1,3}(?:\.\d+)?)\s*°?\s*(?P<ew>[EW])",
     re.I,
 )
 
