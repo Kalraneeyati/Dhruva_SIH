@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     # Set once the pinned bundle exists; INCOIS omits an intermediate cert.
     # See CLAUDE.md. Never disable verification instead.
+    earthdata_token: str | None = None
     incois_ca_bundle: str | None = None
     incois_erddap_base: str = "https://erddap.incois.gov.in/erddap"
     open_meteo_marine_base: str = "https://marine-api.open-meteo.com/v1"
