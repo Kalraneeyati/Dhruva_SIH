@@ -9,7 +9,7 @@ import datetime as dt
 
 import httpx
 
-from dhruva.sources.base import FetchError, FetchOutcome, Observation
+from dhruva.sources.base import FetchError, FetchOutcome, Observation, unusable_reason
 from dhruva.sources.registry import DatasetEntry, Variable
 
 TIMEOUT = httpx.Timeout(20.0, connect=10.0)
@@ -100,10 +100,15 @@ class OpenMeteoAdapter:
                     )
                 )
                 continue
+            canonical = spec.to_canonical(float(series[idx]))
+            reason = unusable_reason(canonical)
+            if reason:
+                out.errors.append(FetchError(dataset_id=entry.id, variable=var, error=reason))
+                continue
             out.observations.append(
                 Observation(
                     variable=var,
-                    value=spec.to_canonical(float(series[idx])),
+                    value=canonical,
                     unit=spec.unit,
                     dataset_id=entry.id,
                     upstream_dataset_id=entry.dataset_id,

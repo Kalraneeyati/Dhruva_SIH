@@ -143,7 +143,11 @@ datasets:
         native_unit: m
         unit: m
       wave_period:
-        native_name: VTPK
+        # VTM02 (mean period from the second spectral moment), NOT VTPK. VTPK is
+        # the period at the spectral peak and is a different quantity: comparing
+        # it against Open-Meteo's mean period read as a 5.15 s vs 10.77 s model
+        # disagreement when it was an apples-to-oranges error in this file.
+        native_name: VTM02
         native_unit: s
         unit: s
       wave_direction:

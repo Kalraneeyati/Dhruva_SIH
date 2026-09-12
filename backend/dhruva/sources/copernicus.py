@@ -16,7 +16,13 @@ import asyncio
 import datetime as dt
 from typing import TYPE_CHECKING
 
-from dhruva.sources.base import FetchError, FetchOutcome, Observation, uv_to_speed_direction
+from dhruva.sources.base import (
+    FetchError,
+    FetchOutcome,
+    Observation,
+    unusable_reason,
+    uv_to_speed_direction,
+)
 from dhruva.sources.cache import CacheKey, ZarrCache
 from dhruva.sources.registry import DatasetEntry, Variable
 
@@ -129,20 +135,21 @@ class CopernicusAdapter:
         out = FetchOutcome()
         now = dt.datetime.now(dt.UTC)
 
+        # Collapse time and depth but keep the lat/lon grid, so a land cell can
+        # fall back to the nearest cell that actually has water in it.
         try:
-            point = ds.sel(latitude=lat, longitude=lon, method="nearest")
-            if "time" in point.dims or "time" in point.coords:
-                point = point.sel(time=_naive(when), method="nearest")
-            if "depth" in point.dims:
-                point = point.isel(depth=0)
+            field = ds
+            if "time" in field.dims or "time" in field.coords:
+                field = field.sel(time=_naive(when), method="nearest")
+            if "depth" in field.dims:
+                field = field.isel(depth=0)
         except Exception as exc:
             return FetchOutcome(
                 errors=[FetchError(dataset_id=entry.id, error=f"select failed: {exc}")]
             )
 
-        cell_lat = float(point["latitude"].values)
-        cell_lon = float(point["longitude"].values)
-        valid = _valid_time(point, when)
+        valid = _valid_time(field, when)
+        cell_lat, cell_lon = lat, lon
 
         def emit(var: Variable, value: float, unit: str) -> None:
             out.observations.append(
@@ -164,35 +171,78 @@ class CopernicusAdapter:
             )
 
         if DERIVED_FROM_UV & set(wanted):
-            try:
-                u = float(point["uo"].values)
-                v = float(point["vo"].values)
-                speed_ms, bearing = uv_to_speed_direction(u, v)
-                if Variable.CURRENT_SPEED in wanted:
-                    emit(Variable.CURRENT_SPEED, speed_ms * MS_TO_KT, "kt")
-                if Variable.CURRENT_DIRECTION in wanted:
-                    emit(Variable.CURRENT_DIRECTION, bearing, "degree")
-            except (KeyError, ValueError) as exc:
+            picked = _nearest_wet(field, "uo", lat, lon)
+            if picked is None:
                 out.errors.append(
-                    FetchError(dataset_id=entry.id, error=f"uo/vo unavailable: {exc}")
+                    FetchError(dataset_id=entry.id, error="no wet cell for uo within the tile")
                 )
+            else:
+                u, cell_lat, cell_lon = picked
+                # Read the partner component at the *same* cell; mixing cells would
+                # combine two different places into one vector.
+                v = float(field["vo"].sel(latitude=cell_lat, longitude=cell_lon).values)
+                reason = unusable_reason(v)
+                if reason:
+                    out.errors.append(FetchError(dataset_id=entry.id, error=f"vo: {reason}"))
+                else:
+                    speed_ms, bearing = uv_to_speed_direction(u, v)
+                    if Variable.CURRENT_SPEED in wanted:
+                        emit(Variable.CURRENT_SPEED, speed_ms * MS_TO_KT, "kt")
+                    if Variable.CURRENT_DIRECTION in wanted:
+                        emit(Variable.CURRENT_DIRECTION, bearing, "degree")
 
         for var in wanted:
             if var in DERIVED_FROM_UV:
                 continue
             spec = entry.variables[var]
-            try:
-                raw = float(point[spec.native_name].values)
-            except (KeyError, ValueError) as exc:
+            picked = _nearest_wet(field, spec.native_name, lat, lon)
+            if picked is None:
                 out.errors.append(
                     FetchError(
-                        dataset_id=entry.id, variable=var, error=f"{spec.native_name}: {exc}"
+                        dataset_id=entry.id,
+                        variable=var,
+                        error=f"{spec.native_name}: no wet cell within the tile",
                     )
                 )
                 continue
+            raw, cell_lat, cell_lon = picked
             emit(var, spec.to_canonical(raw), spec.unit)
 
         return out
+
+
+def _nearest_wet(
+    field: xr.Dataset, name: str, lat: float, lon: float
+) -> tuple[float, float, float] | None:
+    """Nearest grid cell holding real data, with the cell it came from.
+
+    The plain nearest cell to a coastal point is often land, where ocean models
+    store NaN — at 11.05N/79.85E the 0.25 degree biogeochemistry grid lands on
+    shore. Searching outward for the nearest wet cell keeps the answer honest,
+    because the cell returned is reported and offset_km shows how far it is.
+    """
+    import numpy as np
+
+    if name not in field:
+        return None
+    values = np.asarray(field[name].values, dtype="float64")
+    lats = np.asarray(field["latitude"].values, dtype="float64")
+    lons = np.asarray(field["longitude"].values, dtype="float64")
+    if values.shape != (lats.size, lons.size):
+        values = np.squeeze(values)
+        if values.shape != (lats.size, lons.size):
+            return None
+
+    finite = np.isfinite(values)
+    if not finite.any():
+        return None
+
+    grid_lat, grid_lon = np.meshgrid(lats, lons, indexing="ij")
+    scale = np.cos(np.radians(lat))
+    dist = ((grid_lat - lat) * 111.32) ** 2 + ((grid_lon - lon) * 111.32 * scale) ** 2
+    dist = np.where(finite, dist, np.inf)
+    i, j = np.unravel_index(int(np.argmin(dist)), dist.shape)
+    return float(values[i, j]), float(lats[i]), float(lons[j])
 
 
 def _naive(when: dt.datetime) -> dt.datetime:

@@ -18,7 +18,7 @@ import datetime as dt
 import math
 from typing import Protocol
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from dhruva.sources.registry import DatasetEntry, Variable
 
@@ -28,6 +28,7 @@ class Observation(BaseModel):
 
     variable: Variable
     value: float
+
     unit: str
     dataset_id: str = Field(description="registry id, not the upstream id")
     upstream_dataset_id: str
@@ -39,6 +40,17 @@ class Observation(BaseModel):
     grid_resolution_deg: float
     is_forecast: bool = False
     fetched_at: dt.datetime
+
+    @field_validator("value")
+    @classmethod
+    def _must_be_finite(cls, v: float) -> float:
+        """Ocean models fill land and out-of-domain cells with NaN. An Observation
+        is a number a person will be shown and may act on, so a non-finite one is
+        refused at construction — it must surface as a FetchError, never as a
+        wave height reading "nan"."""
+        if not math.isfinite(v):
+            raise ValueError("value is not finite (land cell, or outside the model domain)")
+        return v
 
     @property
     def offset_km(self) -> float:
@@ -79,6 +91,19 @@ class SourceAdapter(Protocol):
         lon: float,
         when: dt.datetime,
     ) -> FetchOutcome: ...
+
+
+def unusable_reason(value: float) -> str | None:
+    """Why this number must not be shown, or None if it is fine.
+
+    Adapters call this before building an Observation so a land cell degrades into
+    a recorded error instead of an exception.
+    """
+    if math.isnan(value):
+        return "no data at this cell (land, or outside the model domain)"
+    if math.isinf(value):
+        return "value is infinite"
+    return None
 
 
 def uv_to_speed_direction(u: float, v: float) -> tuple[float, float]:
