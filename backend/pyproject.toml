@@ -58,6 +58,13 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+# RUF001/RUF002 guard against homoglyphs pasted in by accident. The firewall
+# handles twelve languages, so Tamil and Devanagari digits in its docstrings and
+# the Arabic decimal separator in its number pattern are the subject matter, not
+# a typo. Flagging them here would mean deleting the thing being described.
+"dhruva/evidence/firewall.py" = ["RUF001", "RUF002"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

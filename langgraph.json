@@ -1,0 +1,8 @@
+{
+  "dependencies": ["./backend"],
+  "graphs": {
+    "dhruva": "./backend/dhruva/graph/build.py:graph"
+  },
+  "env": "./.env",
+  "python_version": "3.12"
+}
