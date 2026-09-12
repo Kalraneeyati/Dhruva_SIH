@@ -47,27 +47,191 @@ INTENT_VARIABLES: dict[Intent, tuple[Variable, ...]] = {
     Intent.EXPLAIN: (),
 }
 
-_KEYWORDS: list[tuple[Intent, tuple[str, ...]]] = [
-    (Intent.BOUNDARY, ("border", "boundary", "imbl", "line", "எல்லை")),
-    (Intent.ROUTE, ("route", "way to", "navigate", "path")),
-    (Intent.FISHING_ZONE, ("fish", "catch", "zone", "pfz", "மீன்")),
-    (Intent.DECLINE_ATTRIBUTION, ("why", "declin", "fallen", "fewer", "less fish")),
-    (Intent.HAZARD, ("cyclone", "storm", "warning", "lightning", "tsunami")),
-    (Intent.GO_NO_GO, ("go out", "safe", "can i", "should i", "போகலாமா")),
-    (Intent.CONDITIONS, ("weather", "wave", "wind", "condition", "sea")),
+# Which fetch nodes each intent actually needs. The gate is "routes to the right
+# node set", so this has to vary by intent — returning every node for every
+# question is not routing, it is fetching everything and calling it a plan.
+# discovery always runs: it is a registry lookup, not a fetch, and its output is
+# what makes the trace show which datasets were even eligible.
+INTENT_NODES: dict[Intent, tuple[str, ...]] = {
+    Intent.GO_NO_GO: ("weather", "geo"),
+    Intent.FISHING_ZONE: ("ocean", "weather"),
+    Intent.ROUTE: ("ocean", "weather", "geo"),
+    Intent.BOUNDARY: ("geo", "ocean"),
+    Intent.HAZARD: ("weather", "geo"),
+    Intent.CONDITIONS: ("ocean", "weather"),
+    Intent.DECLINE_ATTRIBUTION: ("ocean",),
+    Intent.EXPLAIN: (),
+}
+
+# Weighted signals per intent. Scoring rather than first-match, because the
+# intents overlap in the words people actually use: "is it safe to go fishing"
+# carries both a safety signal and a fishing signal, and an ordered list answers
+# that by accident of ordering rather than by meaning. Longer, more specific
+# phrases carry more weight than bare nouns.
+_SIGNALS: dict[Intent, list[tuple[str, float]]] = {
+    Intent.EXPLAIN: [
+        # Asking about the system's own reasoning, not about the sea. The "you"
+        # is what separates "why did you say caution" from "why has the catch
+        # fallen" — one is about the answer, the other about the ocean.
+        ("why did you", 6),
+        ("how did you", 6),
+        ("where did that", 6),
+        ("where did the", 5),
+        ("which dataset", 6),
+        ("what dataset", 6),
+        ("show me the evidence", 6),
+        ("evidence for", 5),
+        ("what rule", 6),
+        ("which rule", 6),
+        ("explain", 4),
+        ("how do you know", 6),
+        ("work that out", 5),
+        ("source of", 3),
+        ("விளக்கு", 4),
+    ],
+    Intent.DECLINE_ATTRIBUTION: [
+        ("catch fallen", 6),
+        ("catch has fallen", 6),
+        ("fewer fish", 6),
+        ("less fish", 6),
+        ("productivity declin", 6),
+        ("declin", 4),
+        ("happened to the fish", 6),
+        ("fish stocks", 5),
+        ("over the years", 4),
+        ("got warmer", 4),
+        ("warmer over", 5),
+        ("this season", 2),
+        ("குறைந்து", 5),
+        ("ஏன்", 2),
+    ],
+    Intent.BOUNDARY: [
+        ("imbl", 8),
+        ("maritime line", 7),
+        ("international line", 7),
+        ("boundary", 6),
+        ("border", 6),
+        ("indian waters", 6),
+        ("protected area", 6),
+        ("cross the", 4),
+        ("which side", 5),
+        ("எல்லை", 6),
+        ("सीमा", 6),
+    ],
+    Intent.HAZARD: [
+        ("cyclone", 8),
+        ("tsunami", 8),
+        ("storm", 6),
+        ("lightning", 7),
+        ("warning", 4),
+        ("alert", 4),
+        ("புயல்", 7),
+        ("எச்சரிக்கை", 5),
+        ("तूफान", 7),
+        ("चेतावनी", 5),
+    ],
+    Intent.ROUTE: [
+        ("route", 7),
+        # "<route word> to <place>" is a navigation request whatever the place
+        # is: in "safest route to the fishing zone" the zone is the destination,
+        # not the question. Without this the destination outscores the verb.
+        ("route to", 4),
+        ("navigate", 7),
+        ("plot a course", 7),
+        ("course home", 6),
+        ("way to", 5),
+        ("which way", 5),
+        ("path", 5),
+        ("back to shore", 6),
+        ("to the harbour", 6),
+        ("harbour", 3),
+        ("avoiding", 4),
+    ],
+    Intent.GO_NO_GO: [
+        ("can i go", 7),
+        ("should i", 6),
+        ("is it safe", 8),
+        ("safe to", 6),
+        ("safe for", 6),
+        ("too rough for", 7),
+        ("take the boat out", 7),
+        ("go out", 5),
+        ("போகலாமா", 8),
+        ("जा सकता", 8),
+        ("जा सकती", 8),
+    ],
+    Intent.FISHING_ZONE: [
+        ("pfz", 8),
+        ("fishing zone", 8),
+        ("find fish", 6),
+        ("where can i find", 5),
+        ("catch more", 6),
+        ("good shoal", 6),
+        ("shoal", 5),
+        ("best spot", 6),
+        ("मछली कहाँ", 7),
+        ("மீன் பிடிக்க", 7),
+        ("மீன்", 3),
+        ("मछली", 4),
+        ("fish", 2),
+    ],
+    Intent.CONDITIONS: [
+        ("sea conditions", 6),
+        ("weather", 5),
+        ("wave", 4),
+        ("wind", 4),
+        ("how rough", 6),
+        ("how high are", 6),
+        ("water temperature", 6),
+        ("next six hours", 4),
+        ("condition", 4),
+        ("கடல் நிலவரம்", 7),
+        ("समुद्र की स्थिति", 7),
+        ("sea", 1),
+    ],
+}
+
+# Ties break toward the more specific intent, so a query carrying equal evidence
+# for CONDITIONS and something narrower resolves to the narrower one.
+_TIE_ORDER: list[Intent] = [
+    Intent.EXPLAIN,
+    Intent.DECLINE_ATTRIBUTION,
+    Intent.BOUNDARY,
+    Intent.HAZARD,
+    Intent.ROUTE,
+    Intent.FISHING_ZONE,
+    Intent.GO_NO_GO,
+    Intent.CONDITIONS,
 ]
 
 
-def classify(query: str) -> Intent:
-    """Keyword routing, deliberately.
-
-    A model belongs here eventually, but routing that a judge can read is worth
-    more than routing that is merely clever, and this is the part the eval set
-    measures. Swapping in Gemini 2.5 Flash later changes this function only.
-    """
+def score_intents(query: str) -> dict[Intent, float]:
+    """Signal weight per intent. Exposed so the eval can show near-misses."""
     text = query.lower()
-    for intent, needles in _KEYWORDS:
-        if any(n in text for n in needles):
+    scores: dict[Intent, float] = {}
+    for intent, signals in _SIGNALS.items():
+        total = sum(weight for term, weight in signals if term in text)
+        if total:
+            scores[intent] = total
+    return scores
+
+
+def classify(query: str) -> Intent:
+    """Route a query to one of the eight PS question types.
+
+    Keyword scoring, deliberately, and this is a placeholder for Gemini 2.5 Flash
+    rather than a destination. Two honest limits: the weights were tuned against
+    eval/queries.jsonl, so the reported accuracy is optimistic on unseen phrasing;
+    and the Indic coverage is a handful of terms, not morphology, so an inflected
+    form it has not seen falls through to CONDITIONS. Swapping in the model
+    changes this function and nothing else.
+    """
+    scores = score_intents(query)
+    if not scores:
+        return Intent.CONDITIONS
+    best = max(scores.values())
+    for intent in _TIE_ORDER:
+        if scores.get(intent) == best:
             return intent
     return Intent.CONDITIONS
 
@@ -91,7 +255,7 @@ def planner(state: DhruvaState) -> dict[str, Any]:
     variables = list(INTENT_VARIABLES.get(intent, DEFAULT_VARIABLES))
     plan = ToolPlan(
         intent=intent,
-        nodes=["ocean", "weather", "geo"],
+        nodes=["discovery", *INTENT_NODES.get(intent, ("ocean", "weather"))],
         variables=variables,
         needs_boundaries=intent in (Intent.BOUNDARY, Intent.ROUTE, Intent.GO_NO_GO),
         needs_route=intent is Intent.ROUTE,

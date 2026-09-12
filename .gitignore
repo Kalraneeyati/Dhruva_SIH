@@ -9,6 +9,8 @@ __pycache__/
 node_modules/
 dist/
 .zarr_cache/
+# LangGraph dev-server runtime state (checkpoints, store). Local, not source.
+.langgraph_api/
 data/layers/*.shp
 data/layers/*.dbf
 data/layers/*.shx

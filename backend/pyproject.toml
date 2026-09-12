@@ -36,6 +36,8 @@ geo = [
 graph = [
     "langgraph>=0.2.45",
     "langchain-core>=0.3",
+    # The CLI is what serves the graph to Studio: `langgraph dev`.
+    "langgraph-cli[inmem]>=0.4",
 ]
 dev = [
     "pytest>=8.3",
