@@ -1,0 +1,257 @@
+# DHRUVA source registry.
+#
+# The discovery node reads this at runtime. Adding a dataset is an edit here and
+# never a code change. Schema: backend/dhruva/sources/registry.py
+#
+# Every dataset_id, variable name and unit below was verified against the live
+# provider catalogue on 2026-09-12, not copied from documentation.
+#
+# LIVE sources are Open-Meteo and Copernicus only. INCOIS ERDDAP carries no
+# current data — all 15 of its griddap datasets were surveyed and the newest
+# satellite product ends 2020-05-01 — so it is registered here as climatology
+# for the Phase 3 marine-heatwave baseline, with coverage_end set so that
+# `candidates()` can never hand it back as a nowcast.
+
+datasets:
+  # ---------------------------------------------------------------- LIVE ----
+
+  - id: open_meteo_marine
+    title: Open-Meteo Marine — wave and sea-surface temperature
+    source: open_meteo
+    dataset_id: marine
+    endpoint: https://marine-api.open-meteo.com/v1/marine
+    auth: none
+    latency_hours: 1
+    variables:
+      wave_height:
+        native_name: wave_height
+        native_unit: m
+        unit: m
+      wave_period:
+        native_name: wave_period
+        native_unit: s
+        unit: s
+      wave_direction:
+        native_name: wave_direction
+        native_unit: degree
+        unit: degree
+      sst:
+        native_name: sea_surface_temperature
+        native_unit: degC
+        unit: degC
+    spatial:
+      lat_min: -90.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 180.0
+      grid_resolution_deg: 0.083
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 1940-01-01T00:00:00Z
+      coverage_end: null
+      cadence: PT1H
+      forecast_horizon_hours: 168
+    notes: >-
+      Model, not observation — label it forecast. Serves a different grid cell
+      than requested: asking 11.05N/79.85E returned 11.0417N/79.9584E, ~12 km
+      east. Record the cell returned. Coarse near shore.
+
+  - id: open_meteo_forecast
+    title: Open-Meteo Forecast — 10 m wind
+    source: open_meteo
+    dataset_id: forecast
+    endpoint: https://api.open-meteo.com/v1/forecast
+    auth: none
+    latency_hours: 1
+    variables:
+      wind_speed:
+        native_name: wind_speed_10m
+        native_unit: kn
+        unit: kt
+      wind_direction:
+        native_name: wind_direction_10m
+        native_unit: degree
+        unit: degree
+    spatial:
+      lat_min: -90.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 180.0
+      grid_resolution_deg: 0.1
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 1940-01-01T00:00:00Z
+      coverage_end: null
+      cadence: PT1H
+      forecast_horizon_hours: 384
+    notes: >-
+      The marine endpoint carries no wind; it comes from the forecast API, on a
+      different grid again — the same request returned 11.0721N/79.7782E here
+      versus 11.0417N/79.9584E from marine. Request with wind_speed_unit=kn so
+      no conversion is needed.
+
+  - id: copernicus_phy_hourly
+    title: Copernicus Global Ocean Physics Analysis and Forecast, hourly
+    source: copernicus
+    dataset_id: cmems_mod_glo_phy_anfc_0.083deg_PT1H-m
+    endpoint: https://data.marine.copernicus.eu
+    auth: basic
+    latency_hours: 12
+    variables:
+      sst:
+        native_name: thetao
+        native_unit: degrees_C
+        unit: degC
+      current_speed:
+        native_name: uo,vo
+        native_unit: m s-1
+        unit: kt
+        scale: 1.943844
+      current_direction:
+        native_name: uo,vo
+        native_unit: m s-1
+        unit: degree
+    spatial:
+      lat_min: -80.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 179.9166
+      grid_resolution_deg: 0.083
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 2022-06-01T00:00:00Z
+      coverage_end: null
+      cadence: PT1H
+      forecast_horizon_hours: 240
+    notes: >-
+      thetao is potential temperature at the shallowest depth level, the standard
+      SST proxy — not a skin temperature. current_speed and current_direction are
+      derived by the fetch layer from the uo/vo vector components:
+      speed = hypot(uo, vo), direction = the compass bearing the current sets
+      toward. Both components must be fetched together.
+
+  - id: copernicus_wav
+    title: Copernicus Global Ocean Waves Analysis and Forecast
+    source: copernicus
+    dataset_id: cmems_mod_glo_wav_anfc_0.083deg_PT3H-i
+    endpoint: https://data.marine.copernicus.eu
+    auth: basic
+    latency_hours: 12
+    variables:
+      wave_height:
+        native_name: VHM0
+        native_unit: m
+        unit: m
+      wave_period:
+        native_name: VTPK
+        native_unit: s
+        unit: s
+      wave_direction:
+        native_name: VMDR
+        native_unit: degree
+        unit: degree
+    spatial:
+      lat_min: -80.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 179.9166
+      grid_resolution_deg: 0.083
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 2022-06-01T00:00:00Z
+      coverage_end: null
+      cadence: PT3H
+      forecast_horizon_hours: 240
+    notes: >-
+      VHM0 is spectral significant wave height, the same quantity the risk
+      thresholds are written against. Independent of Open-Meteo's wave model, so
+      the two cross-check each other.
+
+  - id: copernicus_bgc_pft
+    title: Copernicus Global Ocean Biogeochemistry — plankton functional types
+    source: copernicus
+    dataset_id: cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m
+    endpoint: https://data.marine.copernicus.eu
+    auth: basic
+    latency_hours: 24
+    variables:
+      chlorophyll:
+        native_name: chl
+        native_unit: mg m-3
+        unit: mg m-3
+    spatial:
+      lat_min: -80.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 179.75
+      grid_resolution_deg: 0.25
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 2022-06-01T00:00:00Z
+      coverage_end: null
+      cadence: P1D
+      forecast_horizon_hours: 240
+    notes: >-
+      chl lives in bgc-pft, NOT bgc-plankton (which carries only zooc) and not
+      bgc-optics (kd only). Coarsest grid in the registry at 0.25 deg, roughly
+      28 km — say so when a chlorophyll figure is quoted.
+
+  # ------------------------------------------------------------ ARCHIVE ----
+  # Never nowcasts. coverage_end is what stops candidates() returning them.
+
+  - id: incois_oceansat2_archive
+    title: INCOIS Oceansat-2 OCM ocean colour (archive)
+    source: erddap
+    dataset_id: incois_oceansat2_datasets
+    endpoint: https://erddap.incois.gov.in/erddap
+    auth: none
+    latency_hours: 0
+    variables:
+      chlorophyll:
+        native_name: CHL
+        native_unit: mg/m3
+        unit: mg m-3
+    spatial:
+      lat_min: 0.107
+      lat_max: 27.893
+      lon_min: 46.683
+      lon_max: 99.317
+      grid_resolution_deg: 0.04
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 2011-02-02T00:00:00Z
+      coverage_end: 2020-05-01T00:00:00Z
+      cadence: P1D
+    notes: >-
+      ISRO's own ocean-colour record and the finest chlorophyll grid we have at
+      0.04 deg, but it stops 2020-05-01. Use for the chlorophyll-anomaly
+      baseline, never for current productivity. Requires INCOIS_CA_BUNDLE.
+
+  - id: incois_noaa_avhrr_sst_archive
+    title: INCOIS NOAA AVHRR/AMSR Daily-OI SST (archive)
+    source: erddap
+    dataset_id: NOAA_AVHRR_AMSR_datasets
+    endpoint: https://erddap.incois.gov.in/erddap
+    auth: none
+    latency_hours: 0
+    variables:
+      sst:
+        native_name: sst
+        native_unit: degrees C
+        unit: degC
+    spatial:
+      lat_min: -29.875
+      lat_max: 29.875
+      lon_min: 20.125
+      lon_max: 139.875
+      grid_resolution_deg: 0.25
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 2002-06-01T00:00:00Z
+      coverage_end: 2011-10-04T00:00:00Z
+      cadence: P1D
+    notes: >-
+      Dimensions are [time][zlev][latitude][longitude] — the dataset summary
+      omits zlev and a query written from it fails. Nine years of daily SST,
+      which is what the Hobday marine-heatwave definition needs for a seasonal
+      90th-percentile climatology. Requires INCOIS_CA_BUNDLE.

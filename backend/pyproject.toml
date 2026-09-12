@@ -25,6 +25,7 @@ data = [
     "numpy>=1.26",
     "requests>=2.32",
     "certifi>=2024.8",
+    "pyyaml>=6.0",
 ]
 geo = [
     "shapely>=2.0",
