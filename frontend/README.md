@@ -47,6 +47,12 @@ scope, and the UI says so.
 - **A visual multi-agent pipeline** (`AgentPipeline`) that animates each specialist
   agent lighting up in sequence — the actual point of "agentic" made visible, not just
   claimed in a paragraph of prose that would look identical from a single LLM call.
+- **Real location and boat-class wiring**: a "Use my location" geolocation button and a
+  boat-class selector (small/medium/large) actually get sent to the backend now — this
+  was a real gap found while integrating (the UI existed to type a query, but neither
+  the user's actual position nor their boat's safety thresholds ever reached the
+  request). Boat class changes which wave/wind thresholds the verdict is computed
+  against; persisted locally so it's a one-time setup, not asked every query.
 - **A map embedded directly in the answer** (`shared/map/MiniMap`), not just in Shore
   Console — spatial queries (nearest PFZ, safest route, zones to avoid) show a real
   MapLibre view with the location, candidate zone, and route plotted.

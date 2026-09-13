@@ -29,9 +29,16 @@ _DIGIT_TRANSLATION = str.maketrans(
 )
 
 # Matches a run of digits (any of the three scripts, not mixed within one
-# token) with an optional decimal point — e.g. "1.5", "१२", "௨௩.௫".
+# token) with an optional decimal point and an optional leading sign — e.g.
+# "1.5", "-1.5", "+3.2", "१२", "௨௩.௫". The sign is only captured when
+# nothing alphanumeric immediately precedes it (negative lookbehind), so a
+# hyphen inside an ordinary compound word ("sea-state", "12-hour") is never
+# mistaken for a minus sign — a real bug this file used to have: a
+# cooling-trend narrative ("-1.5C") extracted the unsigned "1.5", which could
+# then never match a negative evidence value and would wrongly withhold an
+# otherwise-correct answer. tests/test_firewall.py exercises exactly this.
 _NUMBER_PATTERN = re.compile(
-    r"[0-9०-९௦-௯]+(?:\.[0-9०-९௦-௯]+)?"
+    r"(?<![A-Za-z0-9])[+-]?[0-9०-९௦-௯]+(?:\.[0-9०-९௦-௯]+)?"
 )
 
 # Unit conversions the firewall permits without the exact source value

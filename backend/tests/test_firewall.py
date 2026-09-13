@@ -61,6 +61,32 @@ def test_catches_a_hallucinated_number_written_as_a_tamil_numeral():
     assert 90.0 in result.violations
 
 
+def test_a_negative_value_in_the_narrative_matches_its_negative_evidence():
+    """Regression: extract_numbers used to discard the sign, so a cooling
+    trend narrated as "-1.5C" extracted the unsigned 1.5, which could never
+    match an evidence value of -1.5 and would wrongly withhold a correct
+    answer. Found while wiring the real SST-trend handler."""
+    bundle = _bundle(sst_change_c=-1.5)
+    result = validate_narration("SST has fallen by -1.5 degC over six weeks.", bundle)
+    assert result.ok
+
+
+def test_a_positive_signed_value_also_matches():
+    bundle = _bundle(sst_change_pct=3.2)
+    result = validate_narration("That is +3.2% warmer than six weeks ago.", bundle)
+    assert result.ok
+
+
+def test_hyphen_in_a_compound_word_is_not_mistaken_for_a_minus_sign():
+    bundle = _bundle(wave_height=2.3, valid_hours=12)
+    # "sea-state" and "12-hour" contain hyphens that are not minus signs; the
+    # "-" before "hour" must not be read as turning 12 negative (it would
+    # then fail to match the positive valid_hours=12 evidence).
+    result = validate_narration("Wave height is 2.3 m in this sea-state, valid for the next 12-hour window.", bundle)
+    assert -12.0 not in result.checked
+    assert result.ok
+
+
 def test_extract_numbers_reads_devanagari_digits():
     assert extract_numbers("लहर की ऊँचाई १.५ मीटर") == [1.5]
 

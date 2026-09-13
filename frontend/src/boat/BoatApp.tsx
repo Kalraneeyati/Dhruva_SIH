@@ -17,6 +17,9 @@ import { TechnicalDetails } from "./components/TechnicalDetails";
 import { QueryBar } from "./components/QueryBar";
 import { ConnectionBadge } from "./components/ConnectionBadge";
 import { LanguageSwitcher } from "./components/LanguageSwitcher";
+import { BoatClassSelector, loadSavedBoatClass, saveBoatClass } from "./components/BoatClassSelector";
+import { LocationControl } from "./components/LocationControl";
+import type { BoatClass } from "../shared/types/domain";
 
 const DEFAULT_CENTER: LatLon = { lat: 9.9658, lon: 76.2367 };
 
@@ -59,12 +62,22 @@ export function BoatApp() {
   const [error, setError] = useState<string | null>(null);
   const [initialQuery] = useState(() => searchParams.get("q") ?? "");
   const autoSubmitted = useRef(false);
+  const [boatClass, setBoatClass] = useState<BoatClass>(() => loadSavedBoatClass());
+  const [userLocation, setUserLocation] = useState<LatLon | null>(null);
+
+  const handleBoatClassChange = (value: BoatClass) => {
+    setBoatClass(value);
+    saveBoatClass(value);
+  };
 
   const ask = async (text: string) => {
     setBusy(true);
     setError(null);
     try {
-      const result = await queryAdvisory(text);
+      const result = await queryAdvisory(text, {
+        boatClass,
+        location: userLocation ?? undefined,
+      });
       setResponse(result);
       speak(result.narrative, result.detectedLanguage || "en");
     } catch {
@@ -101,6 +114,11 @@ export function BoatApp() {
           <LanguageSwitcher />
         </div>
       </header>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+        <LocationControl onLocation={setUserLocation} />
+        <BoatClassSelector value={boatClass} onChange={handleBoatClassChange} />
+      </div>
 
       <QueryBar onSubmit={ask} busy={busy} initialText={initialQuery} />
 

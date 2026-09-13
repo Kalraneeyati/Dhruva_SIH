@@ -36,6 +36,8 @@ from dhruva.geo.local_boundaries import nearest_boundaries
 from dhruva.graph.gazetteer import DEFAULT_LOCATION, resolve_location
 from dhruva.graph.intent import QueryIntent, classify_intent
 from dhruva.graph.pfz_estimator import PfzCandidate, estimate_candidate_pfz
+from dhruva.graph.route_planner import plan_route
+from dhruva.graph.sst_history import fetch_sst_trend
 from dhruva.risk.rules import assess_risk
 from dhruva.risk.thresholds import BoatClass
 from dhruva.sources.conditions import Conditions, conditions_at, default_adapters
@@ -273,32 +275,104 @@ async def _handle_safe_route(result: AdvisoryResult, point: tuple[float, float],
         result.trace.append(geo.finish("no candidate destination available", ok=False))
         result.set_narrative(f"No route could be computed right now. {ADVISORY_NOTICE}", [])
         return
-    mid_lat, mid_lon = (point[0] + candidate.lat) / 2, (point[1] + candidate.lon) / 2
-    result.route = [
-        {"lat": point[0], "lon": point[1]},
-        {"lat": mid_lat, "lon": mid_lon},
-        {"lat": candidate.lat, "lon": candidate.lon},
-    ]
-    result.trace.append(geo.finish(f"route plotted toward candidate zone, {candidate.distance_nm:.0f}nm"))
-    narrative = (
-        f"Straight-line route toward the nearest candidate zone, {candidate.distance_nm:.0f} nm bearing "
-        f"{candidate.bearing_deg:.0f}°. This does not yet route around hazard cells (that needs a "
-        f"hazard-weighted grid search — flagged as the next build step, not hidden). {ADVISORY_NOTICE}"
+
+    risk_agent = QueryTrace("risk_assessment")
+    route = await plan_route(point, (candidate.lat, candidate.lon), BoatClass(boat_class))
+    if route is None:
+        risk_agent.finish("live wave grid unavailable", ok=False)
+        result.trace.append(risk_agent)
+        result.set_narrative(
+            f"Could not fetch live wave data to plan a route right now. {ADVISORY_NOTICE}",
+            _pfz_candidate_evidence(candidate, point),
+        )
+        return
+    result.trace.append(
+        risk_agent.finish(
+            f"Dijkstra over a {5*5}-point live wave-height grid, max wave on route {route.max_wave_on_route_m:.2f}m"
+            + (", detoured around a hazard cell" if route.avoided_hazard else "")
+        )
     )
-    result.set_narrative(narrative, _pfz_candidate_evidence(candidate, point))
+
+    result.route = [{"lat": wp.lat, "lon": wp.lon} for wp in route.waypoints]
+    detour_note = (
+        " The path detours around at least one cell at or above this boat class's no-go wave threshold."
+        if route.avoided_hazard
+        else " No hazard cell needed avoiding on this grid right now."
+    )
+    narrative = (
+        f"Route plotted toward the nearest candidate zone using live wave-height data across a grid, not a "
+        f"straight line: highest wave height on the chosen path is {route.max_wave_on_route_m:.2f} m over "
+        f"{len(route.waypoints)} waypoints.{detour_note} {ADVISORY_NOTICE}"
+    )
+    now = dt.datetime.now(dt.UTC)
+    evidence = [
+        EvidenceBundleEntry(
+            key=f"route_waypoint_{i}_wave_hs", value=wp.wave_height_m, unit="m",
+            dataset_id="open_meteo_marine_grid", cell_lat=wp.lat, cell_lon=wp.lon, valid_time=now,
+        )
+        for i, wp in enumerate(route.waypoints)
+    ] + [
+        EvidenceBundleEntry(
+            key="route_waypoint_count", value=float(len(route.waypoints)), unit="count",
+            dataset_id="open_meteo_marine_grid", cell_lat=point[0], cell_lon=point[1], valid_time=now,
+        )
+    ]
+    result.set_narrative(narrative, evidence)
 
 
 async def _handle_productivity_decline(result: AdvisoryResult, point: tuple[float, float], boat_class: str) -> None:
     ocean = QueryTrace("ocean_analytics")
     sst = result.conditions.primary.get(Variable.SST)
-    result.trace.append(ocean.finish("single live SST reading only — no time-series access configured", ok=False))
-    narrative = (
-        "A causal productivity-decline answer needs a chlorophyll/SST time series (Copernicus Marine "
-        "credentials not yet configured on this deployment) — this deployment will not fabricate a trend "
-        f"from a single reading. Current SST here: {f'{sst.value:.1f}°C' if sst else 'unavailable'}. "
-        f"{ADVISORY_NOTICE}"
+    trend = await fetch_sst_trend(point[0], point[1])
+
+    if trend is None:
+        result.trace.append(ocean.finish("historical SST fetch failed; single live reading only", ok=False))
+        narrative = (
+            "A causal productivity-decline answer needs a chlorophyll time series (Copernicus Marine "
+            "credentials not yet configured on this deployment); the historical SST fetch also failed just "
+            f"now. Current SST here: {f'{sst.value:.1f}°C' if sst else 'unavailable'}. {ADVISORY_NOTICE}"
+        )
+        result.set_narrative(narrative, _wave_wind_evidence(result.conditions))
+        return
+
+    result.trace.append(
+        ocean.finish(
+            f"{len(trend.points)} real days of SST history: {trend.first_week_avg_c:.1f}°C → "
+            f"{trend.last_week_avg_c:.1f}°C ({trend.change_c:+.1f}°C)"
+        )
     )
-    result.set_narrative(narrative, _wave_wind_evidence(result.conditions))
+    direction = "risen" if trend.change_c > 0 else "fallen" if trend.change_c < 0 else "stayed flat"
+    narrative = (
+        f"Real SST here has {direction} from {trend.first_week_avg_c:.1f}°C to {trend.last_week_avg_c:.1f}°C "
+        f"over the last {len(trend.points)} days ({trend.change_c:+.1f}°C, {trend.change_pct:+.1f}%). "
+        f"A warming trend is consistent with reduced upwelling and lower productivity, but this is SST alone — "
+        f"a chlorophyll time series (needs Copernicus Marine credentials not configured here) would be needed "
+        f"to state a productivity conclusion directly rather than by this one proxy. {ADVISORY_NOTICE}"
+    )
+    now = dt.datetime.now(dt.UTC)
+    evidence = [
+        EvidenceBundleEntry(
+            key="sst_first_week_avg_c", value=trend.first_week_avg_c, unit="degC",
+            dataset_id="open_meteo_marine_historical", cell_lat=point[0], cell_lon=point[1], valid_time=now,
+        ),
+        EvidenceBundleEntry(
+            key="sst_last_week_avg_c", value=trend.last_week_avg_c, unit="degC",
+            dataset_id="open_meteo_marine_historical", cell_lat=point[0], cell_lon=point[1], valid_time=now,
+        ),
+        EvidenceBundleEntry(
+            key="sst_change_c", value=trend.change_c, unit="degC",
+            dataset_id="open_meteo_marine_historical", cell_lat=point[0], cell_lon=point[1], valid_time=now,
+        ),
+        EvidenceBundleEntry(
+            key="sst_change_pct", value=trend.change_pct, unit="percent",
+            dataset_id="open_meteo_marine_historical", cell_lat=point[0], cell_lon=point[1], valid_time=now,
+        ),
+        EvidenceBundleEntry(
+            key="sst_history_days", value=float(len(trend.points)), unit="days",
+            dataset_id="open_meteo_marine_historical", cell_lat=point[0], cell_lon=point[1], valid_time=now,
+        ),
+    ]
+    result.set_narrative(narrative, evidence)
 
 
 async def _handle_geofence_avoidance(result: AdvisoryResult, point: tuple[float, float], boat_class: str) -> None:
