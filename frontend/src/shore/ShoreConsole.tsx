@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FleetVessel } from "../shared/types/domain";
-import { fetchFleet, isUsingMockData } from "../shared/api/client";
+import { fetchFleet, isUsingMockFleetData } from "../shared/api/client";
 import { FleetList } from "./components/FleetList";
 import { BreachWatch } from "./components/BreachWatch";
 import { MapPanel } from "./components/MapPanel";
@@ -16,9 +16,9 @@ export function ShoreConsole() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "var(--space-4)", display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
-      {isUsingMockData() && (
+      {isUsingMockFleetData() && (
         <p style={{ fontSize: 12, color: "var(--color-caution)", margin: 0 }}>
-          Showing mock fleet data — set VITE_API_BASE_URL to point at the real backend.
+          Illustrative fleet data — no live vessel-tracking (AIS) source is wired into this deployment.
         </p>
       )}
       <BreachWatch fleet={fleet} />

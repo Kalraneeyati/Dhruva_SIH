@@ -47,15 +47,23 @@ export async function queryAdvisoryByIntent(intent: QueryIntent): Promise<Adviso
   return delay(MOCK_ADVISORIES[intent]);
 }
 
+/**
+ * Always mock, even when a real backend is configured: there is no real
+ * vessel-tracking/AIS data source anywhere in this system's scope, so a
+ * `/fleet` endpoint would either be fabricated (against the project's own
+ * "never present invented data as live" principle) or itself just serve
+ * this same fixture — better to say so here than dress it up as a real API
+ * call. The Shore Console UI already labels this ("Showing mock fleet
+ * data") regardless of backend availability.
+ */
 export async function fetchFleet(): Promise<FleetVessel[]> {
-  if (API_BASE) {
-    const res = await fetch(`${API_BASE}/fleet`);
-    if (!res.ok) throw new Error(`fleet fetch failed: ${res.status}`);
-    return (await res.json()) as FleetVessel[];
-  }
   return delay(MOCK_FLEET, 300);
 }
 
 export function isUsingMockData(): boolean {
   return !API_BASE;
+}
+
+export function isUsingMockFleetData(): boolean {
+  return true;
 }

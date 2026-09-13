@@ -72,3 +72,26 @@ a { color: var(--color-accent); }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
+
+.dhruva-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  animation: dhruva-spin 0.8s linear infinite;
+}
+
+@keyframes dhruva-spin {
+  to { transform: rotate(360deg); }
+}
+
+.dhruva-fade-in {
+  animation: dhruva-fade-in 400ms ease both;
+}
+
+@keyframes dhruva-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

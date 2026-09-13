@@ -1,9 +1,29 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { BoatApp } from "./BoatApp";
 import { LocaleProvider } from "../shared/hooks/useLocale";
 import type { AdvisoryResponse } from "../shared/types/domain";
+
+vi.mock("maplibre-gl", () => {
+  class FakeMap {
+    on() { return this; }
+    once() { return this; }
+    remove() {}
+    getSource() { return undefined; }
+    addSource() {}
+    addLayer() {}
+    isStyleLoaded() { return true; }
+    jumpTo() {}
+  }
+  class FakeMarker {
+    setLngLat() { return this; }
+    addTo() { return this; }
+    remove() {}
+  }
+  return { Map: FakeMap, Marker: FakeMarker };
+});
 
 vi.mock("../shared/voice/speech", () => ({
   speak: vi.fn(),
@@ -58,9 +78,11 @@ describe("BoatApp — NO-GO outranks everything (IMPLEMENTATION.md)", () => {
   it("renders the verdict card before the PFZ row in document order, even for a favourable-zone query", async () => {
     const user = userEvent.setup();
     render(
-      <LocaleProvider>
-        <BoatApp />
-      </LocaleProvider>,
+      <MemoryRouter initialEntries={["/boat"]}>
+        <LocaleProvider>
+          <BoatApp />
+        </LocaleProvider>
+      </MemoryRouter>,
     );
 
     await user.type(screen.getByPlaceholderText(/ask about sea conditions/i), "Which fishing zones should be avoided?");

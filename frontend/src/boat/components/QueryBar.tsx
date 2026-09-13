@@ -6,11 +6,12 @@ import { EXAMPLE_QUERIES } from "../../shared/api/mock";
 interface QueryBarProps {
   onSubmit: (text: string) => void;
   busy: boolean;
+  initialText?: string;
 }
 
-export function QueryBar({ onSubmit, busy }: QueryBarProps) {
+export function QueryBar({ onSubmit, busy, initialText = "" }: QueryBarProps) {
   const { locale, t } = useLocale();
-  const [text, setText] = useState("");
+  const [text, setText] = useState(initialText);
   const [listening, setListening] = useState(false);
 
   const submit = (value: string) => {

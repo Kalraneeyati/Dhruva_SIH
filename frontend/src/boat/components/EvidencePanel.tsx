@@ -7,32 +7,25 @@ import { useLocale } from "../../shared/hooks/useLocale";
  * console log — a judge (or a fisherman) should be able to see that the
  * system checked its own narration against evidence before showing it, and
  * be told plainly on the rare occasion it had to fall back to a template.
+ *
+ * The agent-by-agent trace itself lives in AgentPipeline (a visual pipeline,
+ * shown above this panel) — this stays focused on the one claim that matters
+ * here: did the narration you're reading pass validation.
  */
 export function EvidencePanel({ response }: { response: AdvisoryResponse }) {
   const { t } = useLocale();
-  const { firewallRetried, firewallFellBackToTemplate, trace } = response;
+  const { firewallRetried, firewallFellBackToTemplate } = response;
 
   return (
-    <section style={{ background: "var(--color-surface)", borderRadius: "var(--radius-lg)", padding: "var(--space-4)", fontSize: 12 }}>
+    <section style={{ background: "var(--color-surface)", borderRadius: "var(--radius-lg)", padding: "var(--space-4)", fontSize: 13 }}>
       <h3 style={{ margin: "0 0 var(--space-2)", fontSize: 14 }}>{t("evidenceHeading")}</h3>
       {!firewallRetried && !firewallFellBackToTemplate && (
-        <p style={{ margin: 0, color: "var(--color-safe)" }}>✓ Narration validated against evidence on first pass.</p>
+        <p style={{ margin: 0, color: "var(--color-safe)" }}>✓ Narration validated against evidence on first pass — every number above traces to a source.</p>
       )}
       {firewallRetried && !firewallFellBackToTemplate && (
         <p style={{ margin: 0, color: "var(--color-caution)" }}>⚠ {t("firewallRetried")}</p>
       )}
       {firewallFellBackToTemplate && <p style={{ margin: 0, color: "var(--color-caution)" }}>⚠ {t("firewallFallback")}</p>}
-
-      <details style={{ marginTop: "var(--space-2)" }}>
-        <summary style={{ cursor: "pointer", color: "var(--color-text-muted)" }}>{t("traceHeading")} ({trace.length})</summary>
-        <ol style={{ margin: "var(--space-2) 0 0", paddingLeft: 18 }}>
-          {trace.map((step, i) => (
-            <li key={i} style={{ color: step.ok ? "var(--color-text-muted)" : "var(--color-nogo)" }}>
-              {step.agent}: {step.summary}
-            </li>
-          ))}
-        </ol>
-      </details>
     </section>
   );
 }

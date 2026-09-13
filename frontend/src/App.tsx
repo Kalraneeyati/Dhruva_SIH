@@ -1,12 +1,16 @@
 import type { CSSProperties } from "react";
-import { NavLink, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { LocaleProvider, useLocale } from "./shared/hooks/useLocale";
+import { Landing } from "./landing/Landing";
 import { BoatApp } from "./boat/BoatApp";
 import { ShoreConsole } from "./shore/ShoreConsole";
 import { StudyRoutes } from "./study/StudyRoutes";
 
 function TopNav() {
   const { t } = useLocale();
+  const location = useLocation();
+  if (location.pathname === "/") return null;
+
   const linkStyle = ({ isActive }: { isActive: boolean }): CSSProperties => ({
     padding: "var(--space-2) var(--space-4)",
     minHeight: "var(--touch-target)",
@@ -23,6 +27,7 @@ function TopNav() {
       style={{
         display: "flex",
         justifyContent: "center",
+        alignItems: "center",
         gap: "var(--space-2)",
         borderBottom: "1px solid var(--color-border)",
         background: "var(--color-surface)",
@@ -31,7 +36,14 @@ function TopNav() {
         zIndex: 10,
       }}
     >
-      <NavLink to="/" end style={linkStyle}>
+      <Link
+        to="/"
+        aria-label="DHRUVA home"
+        style={{ padding: "0 var(--space-3)", color: "var(--color-text-muted)", textDecoration: "none", fontSize: 18 }}
+      >
+        🌊
+      </Link>
+      <NavLink to="/boat" style={linkStyle}>
         {t("boatTab")}
       </NavLink>
       <NavLink to="/shore" style={linkStyle}>
@@ -49,7 +61,8 @@ function App() {
     <LocaleProvider>
       <TopNav />
       <Routes>
-        <Route path="/" element={<BoatApp />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/boat" element={<BoatApp />} />
         <Route path="/shore" element={<ShoreConsole />} />
         <Route path="/study" element={<StudyRoutes />} />
       </Routes>
